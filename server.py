@@ -113,6 +113,8 @@ def index():
 		names.append(result[0])
 	cursor.close()
 
+	return render_template('index.html', variable=names) # prints to index.html
+
 	#
 	# Flask uses Jinja templates, which is an extension to HTML where you can
 	# pass data to a template and dynamically generate HTML based on the data
