@@ -152,9 +152,81 @@ def index():
 ### CUSTOMER PAGE
 @app.route('/customer')
 def customer():
-	return render_template("customer.html")
 
-### CUSTOMER PAGE
+	# get all shops for customer homepage
+	select_query = "SELECT shop_name from shops"
+	cursor = g.conn.execute(text(select_query))
+	shops = []
+	for result in cursor:
+		shops.append(result[0])
+	cursor.close()
+
+	context = dict(shops = shops)
+
+	# get all products info for customer homepage
+	select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count FROM products, shops WHERE products.shop_id = shops.shop_id"
+	cursor = g.conn.execute(text(select_query))
+	product_imgs = []
+	product_names = []
+	shop_names = []
+	ratings = []
+	ratings_num = []
+	for result in cursor:
+		product_imgs.append(result[0])
+		product_names.append(result[1])
+		shop_names.append(result[2])
+		ratings.append(result[3])
+		ratings_num.append(result[4])
+	cursor.close()
+
+	context = dict(shops=shops, product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings} for name, img, shop, rating, numratings in zip(product_names, product_imgs, shop_names, ratings, ratings_num)})
+
+	return render_template("customer.html", **context)
+
+### SEARCH ON CUSTOMER PAGE
+@app.route('/search', methods=['GET'])
+def searchGet_handler():
+	value = request.args.get('value')
+	if value:
+		value = value.lower()
+
+	# get all shops for customer homepage
+	select_query = "SELECT shop_name from shops WHERE LOWER(shop_name) LIKE '%"+value+"%'"
+	cursor = g.conn.execute(text(select_query))
+	shops = []
+	for result in cursor:
+		shops.append(result[0])
+	cursor.close()
+
+	context = dict(shops = shops)
+
+	# match query with shop name
+	select_query = """SELECT url, product_name, shop_name, avg_review, products.review_count 
+						FROM products, shops 
+						WHERE products.shop_id = shops.shop_id AND 
+						(LOWER(shops.shop_name) LIKE '%"""+value+"""%' OR
+						LOWER(products.product_name) LIKE '%"""+value+"""%' OR
+						(SELECT LOWER(product_type) FROM product_types WHERE products.product_type_id = product_types.product_type_id) LIKE '%"""+value+"""%')"""
+	cursor = g.conn.execute(text(select_query))
+	product_imgs = []
+	product_names = []
+	shop_names = []
+	ratings = []
+	ratings_num = []
+	for result in cursor:
+		product_imgs.append(result[0])
+		product_names.append(result[1])
+		shop_names.append(result[2])
+		ratings.append(result[3])
+		ratings_num.append(result[4])
+	cursor.close()
+
+	context = dict(shops=shops, product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings} for name, img, shop, rating, numratings in zip(product_names, product_imgs, shop_names, ratings, ratings_num)})
+	
+	return render_template("customer.html", **context)
+
+
+### SHOP PAGE
 @app.route('/shop')
 def shop():
 	return render_template("shop.html")
