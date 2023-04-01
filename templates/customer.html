@@ -1,10 +1,155 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>Customer Homepage</title>
 
+        <style>
+            #header-row {
+                display: flex;
+                align-items: center;
+                background-color: lightgrey;
+            }
+
+            #acc-button {
+                margin-left: 150px;
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                background-color: pink;
+            }
+
+            #acc-dropdown {
+                display: none; 
+                position: absolute;
+                z-index: 1;
+                background-color: lightgrey;
+                top: calc(100% + 5px); /* set the top position to be just below the button */
+                margin-left: 65px;
+                padding: 10px;
+                text-align: center;
+            }
+
+            #display-shops, #display-products {
+                border: 1px solid black;
+                margin-left: 20px;
+                margin-right: 20px;
+                margin-top: 10px;
+                padding: 20px;
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .shop {
+                padding: 5px;
+                border: 1px solid grey;
+                margin: 10px;
+            }
+
+            .shop:hover {
+                background-color: lightgrey;
+            }
+
+            .product-images {
+                height: 120px;
+                width: auto;
+            }
+
+            .product-image-box {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 200px; 
+                height: 120px; 
+                border: 1px solid grey;
+                margin: 10px;
+                margin-bottom: 0px;
+            }
+
+            .product-name {
+                border: 1px solid grey;
+                margin-left: 10px;
+                padding: 5px;
+                width: 190px;
+                height: 160px;
+                position: relative;
+            }
+
+            .shop-name {
+                position: absolute;
+                bottom: 5px;
+                left: 5px;
+            }
+
+            .product:hover {
+                background-color: lightgrey;
+            }
+        </style>
     </head>
 
     <body>
-        Customer page
+
+        <div id="header-row" style="position:relative;">
+            <h1 style="margin-left: 20px;">Welcome to our Shop!</h1>
+
+            <form action="/search" method="GET" style="margin-left: 400px;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a>Purchased Products</a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 style="margin-left: 20px;">All Shops:</h2>
+        <div id="display-shops">
+            {% for shop in shops %}
+            <div class="shop">{{shop}}</div>
+            {% endfor %}
+        </div>
+
+        <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
+        <div id="display-products">
+            {% for name, info in product_info.items() %}
+            <div class="product">
+                <div class="product-image-box">
+                    <img class="product-images" src="{{info['img']}}">
+                </div>
+                <div class="product-name">
+                    {{ name }}
+                    <span class="shop-name">
+                        <b>{{ info['shop'] }}</b><br>
+                        ⭑ {{ info['rating'] }} ({{ info['numratings'] }})
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
     </body>
 </html>
+
+<script>
+function toggleDropdown() {
+  var dropdown = document.getElementById("acc-dropdown");
+  if (dropdown.style.display === "block") {
+    dropdown.style.display = "none";
+  } else {
+    dropdown.style.display = "block";
+  }
+}
+
+/*document.getElementById("search-form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    var query = document.getElementById("query").value;
+    var currentUrl = window.location.href;
+    var newUrl = currentUrl + (currentUrl.indexOf("?") === -1 ? "?" : "&") + "q=" + encodeURIComponent(query);
+    window.location.href = newUrl;
+});*/
+</script>
