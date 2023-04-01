@@ -1,3 +1,10 @@
 body {
-    color: pink;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#login-header {
+    margin-top: 200px;
 }
