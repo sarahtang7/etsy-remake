@@ -83,13 +83,17 @@
             .product:hover {
                 background-color: lightgrey;
             }
+
+            #return-to-customer:hover {
+                cursor: pointer;
+            }
         </style>
     </head>
 
     <body>
 
         <div id="header-row" style="position:relative;">
-            <h1 style="margin-left: 20px;">Welcome to our Shop!</h1>
+            <h1 id="return-to-customer" style="margin-left: 20px;">Welcome to our Shop!</h1>
 
             <form action="/search" method="GET" style="margin-left: 400px;">
                 <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
@@ -117,7 +121,7 @@
         <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
         <div id="display-products">
             {% for name, info in product_info.items() %}
-            <div class="product">
+            <div onclick="openProductPage()" class="product" currPID="{{info['pid']}}">
                 <div class="product-image-box">
                     <img class="product-images" src="{{info['img']}}">
                 </div>
@@ -145,11 +149,12 @@ function toggleDropdown() {
   }
 }
 
-/*document.getElementById("search-form").addEventListener("submit", function(event) {
-    event.preventDefault();
-    var query = document.getElementById("query").value;
-    var currentUrl = window.location.href;
-    var newUrl = currentUrl + (currentUrl.indexOf("?") === -1 ? "?" : "&") + "q=" + encodeURIComponent(query);
-    window.location.href = newUrl;
-});*/
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+
+function openProductPage() {
+    var curr_pid = event.currentTarget.getAttribute("currPID");
+    window.location.href = "/product/" + curr_pid;
+};
 </script>

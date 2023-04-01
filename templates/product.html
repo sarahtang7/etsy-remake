@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Product Page</title>
+
+        <style>
+            #header-row {
+                display: flex;
+                align-items: center;
+                background-color: lightgrey;
+            }
+
+            #acc-button {
+                margin-left: 150px;
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                background-color: pink;
+            }
+
+            #acc-dropdown {
+                display: none; 
+                position: absolute;
+                z-index: 1;
+                background-color: lightgrey;
+                top: calc(100% + 5px); /* set the top position to be just below the button */
+                margin-left: 65px;
+                padding: 10px;
+                text-align: center;
+            }
+
+            #return-to-customer:hover {
+                cursor: pointer;
+            }
+
+            #img-box {
+                margin-left: 20px;
+                height: 450px;
+                width: 800px;
+                border: 1px solid black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #img {
+                height: 450px;
+                width: auto;
+            }
+
+            #shop-info {
+                width: 550px;
+                height: 200px;
+                margin-left: 20px;
+                padding: 20px;
+                margin-top: -20px;
+            }
+
+            .product-buttons {
+                width: 120px;
+                height: 40px;
+            }
+
+            #product-rating {
+                margin-left: 20px;
+                margin-top: 5px;
+                font-size: 18px;
+            }
+
+            #reviews-box {
+                height: 200px; 
+                overflow: auto;
+                border: 1px solid black;
+                margin-left: 60px;
+                margin-right: 60px;
+                margin-top: 5px;
+                padding: 20px;
+            }
+
+            .indiv-review {
+                background-color: #f6f6f6;
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="header-row" style="position:relative;">
+            <h1 id="return-to-customer" style="margin-left: 20px;">Welcome to our Shop!</h1>
+
+            <form action="/search" method="GET" style="margin-left: 400px;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a>Purchased Products</a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 style="margin-left: 20px; width: 800px;">{{product_name}}</h2>
+        <div style="display: flex; justify-content: center;">
+            <div id="img-box">
+                <img id="img" src="{{product_image}}">
+            </div>
+
+            <div id="shop-info">
+                <h2 style="margin-bottom: 5px;">{{shop_name}}</h2>
+                ({{shop_loc}}, {{shop_country}}) <br>
+                ⭑ {{ shop_rating }} ({{ shop_numreviews }} reviews) <br>
+                ({{ shop_sales }} total sales)
+
+                <div style="margin-top: 50px;">
+                    <h4 style="margin-bottom: 5px;">{{ price }}</h4>
+                    <h4 style="margin-bottom: 5px; margin-top: -5px;">{{ product_substance }}</h4>
+                    <button class="product-buttons" id="add-to-cart">Add to Cart</button>
+                    <br><br><br>
+                    <button class="product-buttons">Leave a Review</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="product-rating">
+            ⭑ {{ product_rating }} ({{ product_numreviews }} reviews)
+        </div>
+        <br>
+        <u style="margin-left: 40px; margin-top: 5px; margin-bottom: 8px;">Customer Reviews:</u>
+        
+        <div id="reviews-box">
+            {% for name, info in reviews_info.items() %}
+            <div class="indiv-review">⭑{{info['rating']}}: {{info['review']}}</div>
+            {% endfor %}
+        </div>
+        
+    </body>
+</html>
+
+<script>
+function toggleDropdown() {
+    var dropdown = document.getElementById("acc-dropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+</script>
