@@ -143,12 +143,21 @@ def index():
 	#
 	context = dict(data = names)
 
-
 	#
 	# render_template looks in the templates/ folder for files.
 	# for example, the below file reads template/index.html
 	#
 	return render_template("index.html", **context)
+
+### CUSTOMER PAGE
+@app.route('/customer')
+def customer():
+	return render_template("customer.html")
+
+### CUSTOMER PAGE
+@app.route('/shop')
+def shop():
+	return render_template("shop.html")
 
 #
 # This is an example of a different path.  You can see it at:
@@ -158,7 +167,7 @@ def index():
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
 #
-@app.route('/another')
+'''@app.route('/another')
 def another():
 	return render_template("another.html")
 
@@ -180,7 +189,7 @@ def add():
 @app.route('/login')
 def login():
 	abort(401)
-	this_is_never_executed()
+	this_is_never_executed()'''
 
 
 if __name__ == "__main__":

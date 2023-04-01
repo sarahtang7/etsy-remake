@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="../static/style.css">
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #login-header {
+                margin-top: 200px;
+            }
+        </style>
     </head>
 
     <body>
 
         <!--Login Page-->
         <h1 id="login-header">Login</h1>
-        <button onclick="window.location.href = window.location.href + '/customer'">Customer</button><br>
-        <button onclick="window.location.href = window.location.href + '/shop'">Shop</button>
+        <button onclick="redirectCustomerPage()">Customer</button><br>
+        <button onclick="redirectShopPage()">Shop</button>
         <!--<div id="test">{{variable}}</div>-->
     </body>
 </html>
+
+<script>
+
+function redirectCustomerPage() {
+    var currentUrl = window.location.href;
+    var newUrl = currentUrl + 'customer';
+    window.location.href = newUrl;
+}
+
+function redirectShopPage() {
+    var currentUrl = window.location.href;
+    var newUrl = currentUrl + 'shop';
+    window.location.href = newUrl;
+}
+
+</script>
