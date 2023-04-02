@@ -11,7 +11,7 @@
             }
 
             #acc-button {
-                margin-left: 150px;
+                margin-left: 100px;
                 width: 50px;
                 height: 50px;
                 border-radius: 25px;
@@ -24,7 +24,7 @@
                 z-index: 1;
                 background-color: lightgrey;
                 top: calc(100% + 5px); /* set the top position to be just below the button */
-                margin-left: 65px;
+                margin-left: 20px;
                 padding: 10px;
                 text-align: center;
             }
@@ -82,19 +82,32 @@
                 padding: 15px;
                 margin-bottom: 10px;
             }
+
+            #cart {
+                font-size: 40px;
+                position: absolute;
+                right: 40px;
+            }
+
+            #cart:hover {
+                cursor: pointer;
+            }
         </style>
     </head>
 
     <body>
         <div id="header-row" style="position:relative;">
-            <h1 id="return-to-customer" style="margin-left: 20px;">Welcome to our Shop!</h1>
+            <div>
+                <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
 
-            <form action="/search" method="GET" style="margin-left: 400px;">
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
                 <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
                 <button type="submit">Search</button>
             </form>
 
-            <div id="user-acc-info">
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
                 <button id="acc-button" onclick="toggleDropdown()"></button><br>
 
                 <div id="acc-dropdown">
@@ -102,6 +115,8 @@
                     <a>Your Recommended Products</a>
                 </div>
             </div>
+
+            <p id="cart">🛒</p>
 
         </div>
 
@@ -120,7 +135,18 @@
                 <div style="margin-top: 50px;">
                     <h4 style="margin-bottom: 5px;">{{ price }}</h4>
                     <h4 style="margin-bottom: 5px; margin-top: -5px;">{{ product_substance }}</h4>
-                    <button class="product-buttons" id="add-to-cart">Add to Cart</button>
+
+                    <form action="/customer" method="post" onsubmit="return addToCart()">
+                        <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart">
+
+                        <label for="quantity" style="margin-left: 10px;">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" max="20" style="width: 36px;">
+
+                        <input type="hidden" name="product_id" value="{{ prodid }}">
+                        <input type="hidden" name="shop_id" value="{{ shopid }}">
+                        <input type="hidden" name="price" value="{{ price }}">
+                    </form>
+
                     <br><br><br>
                     <button class="product-buttons">Leave a Review</button>
                 </div>
@@ -155,4 +181,20 @@ function toggleDropdown() {
 document.getElementById("return-to-customer").addEventListener("click", function() {
     window.location.href = "/customer";
 });
+
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
+
+function addToCart() {
+    var quantityInput = document.getElementById("quantity");
+        if (quantityInput.value == "") {
+            alert("Please enter a quantity.");
+            return false; // prevent the form from submitting
+        }
+        else {
+            alert("Added to cart!");
+            return true; // allow the form to submit
+        }
+}
 </script>

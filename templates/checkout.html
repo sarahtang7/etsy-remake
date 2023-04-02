@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Checkout</title>
+
+        <style>
+            #col1 {
+                border: 1px solid black;
+                width: 800px;
+                height: 500px;
+                overflow: auto;
+                padding: 20px;
+            }
+
+            #col2 {
+                width: 450px;
+                height: 500px;
+                margin-left: 40px;
+            }
+
+            #container {
+                display: flex;
+                justify-content: center;
+            }
+
+            #header-row {
+                display: flex;
+                align-items: center;
+                background-color: lightgrey;
+            }
+
+            #acc-button {
+                margin-left: 100px;
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                background-color: pink;
+            }
+
+            #acc-dropdown {
+                display: none; 
+                position: absolute;
+                z-index: 1;
+                background-color: lightgrey;
+                top: calc(100% + 5px); /* set the top position to be just below the button */
+                margin-left: 20px;
+                padding: 10px;
+                text-align: center;
+            }
+
+            #return-to-customer:hover {
+                cursor: pointer;
+            }
+
+            #cart {
+                font-size: 40px;
+                position: absolute;
+                right: 40px;
+            }
+
+            #cart:hover {
+                cursor: pointer;
+            }
+
+            .cart-item {
+                background-color: #f6f6f6;
+                margin-bottom: 20px;
+                position: relative;
+            }
+
+            #img {
+                width: auto;
+                height: 100px;
+                margin-left: 20px;
+                margin-bottom: 10px;
+            }
+
+            .quantity {
+                position: absolute;
+                right: 200px;
+                bottom: 10px;
+            }
+
+            .prod-cost {
+                position: absolute;
+                bottom: 10px;
+                left: 650px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="header-row" style="position:relative;">
+            <div>
+                <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
+
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a>Purchased Products</a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+
+            <p id="cart">🛒</p>
+
+        </div>
+
+
+        <h2 style="margin-left: 60px; margin-top: 20px;">Your Cart:</h2>
+
+        <div id="container">
+            <!--CART CONTENTS-->
+            <div id="col1">
+                {% for name, info in carts_info.items() %}
+                <div class="cart-item">
+                    <p style="font-size: 16px; padding: 10px; margin-bottom: 0px;"><b>{{name}}</b></p>
+                    <img id="img" src="{{info['image']}}">
+                    <span class="quantity">Quantity: {{ info['quantity'] }}</span>
+                    <span class="prod-cost">{{ info['cost'] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+    
+            <div id="col2">
+                <h2 style="margin-left: 10px;">Payment Information:</h2>
+
+                <form action="/checkout" method="post" style="margin-left: 20px;" onsubmit="confirmCheckout()">
+
+                    <label for="firstname">First Name:</label>
+                    <input type="text" id="firstname" name="firstname" value="{{ firstname }}" required>
+                    <br><br>
+                    <label for="lastname">Last Name:</label>
+                    <input type="text" id="lastname" name="lastname" value="{{ lastname }}" required>
+                    <br><br><br>
+                    <label for="cardnumber">Card Number:</label>
+                    <input type="text" id="cardnumber" name="cardnumber" minlength="16" maxlength="16" value="{{ cardnum }}" required>
+
+                    <label for="securitycode" style="margin-left: 15px;">Security Code:</label>
+                    <input type="number" id="securitycode" name="securitycode" minlength="3" maxlength="3" value="{{ seccode }}" style="width: 40px;" required>
+                    <br><br>
+                    <label for="expdate">Expiration Date:</label>
+                    <input type="date" id="expdate" name="expdate" value="{{ expdate }}" required>
+                    <br>
+
+                    {% if physical_present %}
+                        <br><p>You have physical products in your cart. Please enter your <br>address:</p>
+                        <label for="streetaddress">Street Address:</label>
+                        <input type="text" id="streetaddress" name="streetaddress" value="{{ street }}" required>
+                        <br><br>
+                        <label for="city">City:</label>
+                        <input type="text" id="city" name="city" value="{{ city }}" required>
+
+                        <label for="state" style="margin-left: 15px;">State:</label>
+                        <input type="text" id="state" name="state" value="{{ state if state is not none else '' }}">
+                        <br><br>
+                        <label for="zipcode">Zipcode:</label>
+                        <input type="number" minlength="5" maxlength="5" id="zipcode" name="zipcode" value="{{ zipcode }}" required>
+
+                        <label for="countrycode" style="margin-left: 15px;">State:</label>
+                        <input type="text" minlength="3" maxlength="3" id="countrycode" name="countrycode" value="{{ countrycode }}">
+                    {% endif %}
+
+                    {% if downloadable_present %}
+                        <br><br><p>You have downloadable products in your cart. You can download them in your account dashboard after you checkout.</p>
+                    {% endif %}
+
+                    <br><p id="totcost"><b>Total Cost of Order</b>: {{ totalordercost }}</p>
+                    <input type="submit" id="checkout" value="Checkout">
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
+
+<script>
+function toggleDropdown() {
+    var dropdown = document.getElementById("acc-dropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
+
+function confirmCheckout() {
+    alert("Checkout Confirmed!")
+    document.getElementById("col1").innerHTML = ""
+}
+</script>
