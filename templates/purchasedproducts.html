@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Purchased Products</title>
+
+        <style>
+            #header-row {
+                display: flex;
+                align-items: center;
+                background-color: lightgrey;
+            }
+
+            #acc-button {
+                margin-left: 100px;
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                background-color: pink;
+            }
+
+            #acc-dropdown {
+                position: absolute;
+                z-index: 1;
+                background-color: lightgrey;
+                top: 58px;
+                margin-left: 21px;
+                padding: 10px;
+                text-align: center;
+                display: none;
+                right: -75px;
+                border: 1px solid black;
+            }
+
+            #return-to-customer:hover {
+                cursor: pointer;
+            }
+
+            #cart {
+                font-size: 40px;
+                position: absolute;
+                right: 40px;
+            }
+
+            #cart:hover {
+                cursor: pointer;
+            }
+
+            #downloadable-prods, #physical-prods {
+                height: 200px; 
+                overflow: auto;
+                border: 1px solid black;
+                margin-left: 60px;
+                margin-right: 60px;
+                margin-top: 5px;
+                padding: 20px;
+            }
+
+            .down-prod {
+                background-color: #f6f6f6;
+                margin-bottom: 20px;
+                position: relative;
+                padding: 10px;
+            }
+
+            #img {
+                width: auto;
+                height: 100px;
+                margin-left: 20px;
+                margin-bottom: 10px;
+            }
+
+            .download-button {
+                position: absolute;
+                right: 224px;
+                top: 72px;
+                width: 163px;
+                height: 42px;
+                font-size: 16px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!--HEADER ROW-->
+        <div id="header-row" style="position:relative;">
+            <div>
+                <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
+
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+
+            <p id="cart">🛒</p>
+        </div>
+
+        <!--PAGE BODY-->
+        <h2 style="margin-left: 20px; margin-top: 30px;">Purchased Products:</h2>
+
+        <!--Downloadable Products-->
+        <h3 style="margin-left: 40px; margin-bottom: 10px;">Downloadable Products: (download your products here!)</h3>
+        <div id="downloadable-prods">
+            {% for name, info in downprods_info.items() %}
+            <div class="down-prod">
+                <p style="margin: 0px 0px 5px 0px;"><b>{{name}}</b></p>
+                <p style="margin-top: 0px; margin-bottom: 5px;"><u>Purchased on</u>: {{ info['date'] }}</p>
+                <img id="img" src="{{info['image']}}">
+                <div>File Information: {{info['filetype']}} ({{info['filesize']}} KB)</div>
+                <button class="download-button" onclick="downloadMockFile()">Download</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <br>
+        <h3 style="margin-left: 40px; margin-bottom: 10px;">Physical Products:</h3>
+        <div id="physical-prods">
+            {% for name, info in physicalprods_info.items() %}
+            <div class="down-prod">
+                <p style="margin: 0px 0px 5px 0px;"><b>{{name}}</b></p>
+                <p style="margin-top: 0px; margin-bottom: 5px;"><u>Purchased on</u>: {{ info['date'] }}</p>
+                <p style="margin-top: 0px;"><u>Quantity purchased</u>: {{ info['quantity'] }}</p>
+                <img id="img" src="{{info['image']}}">
+                <div>Dimensions: {{info['dimension']}}</div>
+                <div>Weight: {{ info['weight'] }} lbs</div>
+                <div>Materials: {{ info['material'] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </body>
+</html>
+
+<script>
+function toggleDropdown() {
+    var dropdown = document.getElementById("acc-dropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
+
+function goToPurchased() {
+    window.location.href = "/purchasedproducts";
+}
+
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+
+function downloadMockFile() {
+    const data = [];
+    const blob = new Blob([data], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    //window.open(url);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'mock_file.txt';
+    link.click();
+}
+</script>
