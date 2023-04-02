@@ -11,7 +11,7 @@
             }
 
             #acc-button {
-                margin-left: 150px;
+                margin-left: 100px;
                 width: 50px;
                 height: 50px;
                 border-radius: 25px;
@@ -24,7 +24,7 @@
                 z-index: 1;
                 background-color: lightgrey;
                 top: calc(100% + 5px); /* set the top position to be just below the button */
-                margin-left: 65px;
+                margin-left: 20px;
                 padding: 10px;
                 text-align: center;
             }
@@ -87,20 +87,33 @@
             #return-to-customer:hover {
                 cursor: pointer;
             }
+
+            #cart {
+                font-size: 40px;
+                position: absolute;
+                right: 40px;
+            }
+
+            #cart:hover {
+                cursor: pointer;
+            }
         </style>
     </head>
 
     <body>
 
         <div id="header-row" style="position:relative;">
-            <h1 id="return-to-customer" style="margin-left: 20px;">Welcome to our Shop!</h1>
+            <div>
+                <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
 
-            <form action="/search" method="GET" style="margin-left: 400px;">
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
                 <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
                 <button type="submit">Search</button>
             </form>
 
-            <div id="user-acc-info">
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
                 <button id="acc-button" onclick="toggleDropdown()"></button><br>
 
                 <div id="acc-dropdown">
@@ -108,6 +121,8 @@
                     <a>Your Recommended Products</a>
                 </div>
             </div>
+
+            <p id="cart">🛒</p>
 
         </div>
 
@@ -157,4 +172,8 @@ function openProductPage() {
     var curr_pid = event.currentTarget.getAttribute("currPID");
     window.location.href = "/product/" + curr_pid;
 };
+
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
 </script>
