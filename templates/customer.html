@@ -19,14 +19,16 @@
             }
 
             #acc-dropdown {
-                display: none; 
                 position: absolute;
                 z-index: 1;
                 background-color: lightgrey;
-                top: calc(100% + 5px); /* set the top position to be just below the button */
-                margin-left: 20px;
+                top: 58px;
+                margin-left: 21px;
                 padding: 10px;
                 text-align: center;
+                display: none;
+                right: -75px;
+                border: 1px solid black;
             }
 
             #display-shops, #display-products {
@@ -117,7 +119,7 @@
                 <button id="acc-button" onclick="toggleDropdown()"></button><br>
 
                 <div id="acc-dropdown">
-                    <a>Purchased Products</a><br><br>
+                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
                     <a>Your Recommended Products</a>
                 </div>
             </div>
@@ -164,6 +166,14 @@ function toggleDropdown() {
   }
 }
 
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
+
+function goToPurchased() {
+    window.location.href = "/purchasedproducts";
+}
+
 document.getElementById("return-to-customer").addEventListener("click", function() {
     window.location.href = "/customer";
 });
@@ -172,8 +182,4 @@ function openProductPage() {
     var curr_pid = event.currentTarget.getAttribute("currPID");
     window.location.href = "/product/" + curr_pid;
 };
-
-document.getElementById("cart").addEventListener("click", function() {
-    window.location.href = "/checkout";
-});
 </script>
