@@ -334,7 +334,34 @@ def product(product_id):
 ### SHOP PAGE
 @app.route('/shop')
 def shop():
-    return render_template("shop.html")
+	# get all products for an individual shop homepage           
+    select_query = "SELECT product_id from products WHERE products.shop_id = shops.shop_id"
+    cursor = g.conn.execute(text(select_query))
+    products = []
+    for result in cursor:
+        products.append(result[0])
+    cursor.close()
+    
+    context = dict(products = products)
+    
+	# get all products info for shop homepage
+    select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
+    cursor = g.conn.execute(text(select_query))
+    product_imgs = []
+    product_names = []
+    ratings = []
+    ratings_num = []
+    product_ids = []
+    for result in cursor:
+        product_imgs.append(result[0])
+        product_names.append(result[1])
+        ratings.append(result[2])
+        ratings_num.append(result[3])
+        product_ids.append(result[4])
+    cursor.close()
+
+    context = dict(products=products, product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, shop, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+    return render_template("shop.html", **context)
 
 #
 # This is an example of a different path.  You can see it at:
