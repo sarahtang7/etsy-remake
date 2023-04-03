@@ -114,7 +114,7 @@
 
                 <div id="acc-dropdown">
                     <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
-                    <a>Your Recommended Products</a>
+                    <a onclick="goToRecs()" style="cursor: pointer;"><u>Your Recommended Products</u></a>
                 </div>
             </div>
 
@@ -139,7 +139,12 @@
                     <h4 style="margin-bottom: 5px; margin-top: -5px;">{{ product_substance }}</h4>
 
                     <form action="/customer" method="post" onsubmit="return addToCart()">
-                        <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart">
+                        {% if disable_addtocart %}
+                            <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart" disabled>
+                            <p style="color: red;">This product is already in your cart</p>
+                        {% else %}
+                            <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart">
+                        {% endif %}
 
                         {% if product_substance == "Downloadable Product" %}
                             <p>(one time purchase)</p>
@@ -214,6 +219,10 @@ function addToCart() {
 
 function goToPurchased() {
     window.location.href = "/purchasedproducts";
+}
+
+function goToRecs() {
+    window.location.href = "/recommended";
 }
 
 function openReviewPage() {
