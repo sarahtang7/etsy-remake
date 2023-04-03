@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Shop Login</title>
+
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #login-header {
+                margin-top: 200px;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+            }
+
+            #wrong-login {
+                display: flex;
+                justify-content: center;
+                color: red;
+                margin-top: 30px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1 id="login-header">Shop Login</h1>
+
+        <div>
+            <form action="/shoplogincheck" method="post">
+                <div class="form-group">
+                    <label for="shopname" style="margin-right: 50px;">Shop Name:</label>
+                    <input type="text" id="shopname" name="shopname"><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="password" style="margin-right: 27px;">Password:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+                <br><br>
+                <div style="text-align: center;">
+                    <input type="submit" value="Log In">
+                </div>
+            </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div id="wrong-login" class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </body>
+</html>

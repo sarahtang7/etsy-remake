@@ -150,97 +150,9 @@ def index():
     #
     return render_template("index.html", **context)
 
-### CUSTOMER LOG IN PAGE
-@app.route('/customerlogin')
-def customer_login():
-    return render_template("customerlogin.html")
-
-### CUSTOMER LOG IN CHECK 
-@app.route('/customerlogincheck', methods=['POST'])
-def customer_login_check():
-    email = request.form['email']
-    password = request.form['password']
-
-    query_1 = """SELECT CASE 
-                WHEN EXISTS (
-                    SELECT * FROM customers
-                    WHERE email_address = '"""+email+"""' AND 
-                        password = '"""+password+"""'
-                ) THEN 1 ELSE 0
-                END"""
-    cursor = g.conn.execute(text(query_1))
-    for result in cursor:
-        if result[0] == 1:
-            session['email'] = email # store customer as logged in
-
-            query_2 = """SELECT first_name, last_name, customer_id
-                        FROM customers
-                        WHERE email_address = '"""+email+"""'"""
-            cursor = g.conn.execute(text(query_2))
-            for result in cursor:
-                session['curruser'] = result[0] + " " + result[1]
-                session['custID'] = result[2]
-            return redirect('/customer')
-        else:
-            flash('Incorrect login information', 'error')
-            return redirect('/customerlogin')
-        
-    
-    cursor.close()
-
-    #print(email)
-    #print(password)
-    return redirect('/')
-    #return render_template("customerlogin.html")
-
 ### CUSTOMER PAGE
-@app.route('/customer', methods=['POST', 'GET'])
+@app.route('/customer')
 def customer():
-
-    # from added to cart
-    if request.method == 'POST':
-        prodid = request.form['product_id']
-
-        query_1 = "SELECT MAX(order_id) FROM carts"
-        cursor = g.conn.execute(text(query_1))
-        new_order_id = ""
-        for result in cursor:
-            new_order_id = str(int(result[0])+1)
-        cursor.close()
-
-        totalcost = float(request.form['price'].replace('$', '')) # initially set to cost of 1
-        quantity = int(request.form.get('quantity'))
-        if quantity > 1:
-            totalcost = totalcost * quantity
-
-        # if product is already in cart
-        select_query_2 = """SELECT CASE WHEN EXISTS (
-                                SELECT * FROM carts
-                                WHERE product_id = '"""+prodid+"""' AND 
-                                    customer_id = '"""+session['custID']+"""'
-                        ) THEN 1 ELSE 0
-                        END"""
-        cursor = g.conn.execute(text(select_query_2))
-
-        for result in cursor:
-            if result[0] == 1:
-                update_order = "UPDATE carts SET quantity = quantity + "+str(quantity)+", total_price = total_price + "+str(totalcost)+"::money WHERE product_id = '"+prodid+"' AND customer_id = '"+session['custID']+"'"
-                g.conn.execute(text(update_order))
-                g.conn.commit()
-            else:
-                add_to_order = """INSERT INTO carts (order_id, order_date, shop_id, customer_id, product_id,
-                            total_price, quantity) 
-                            VALUES ('"""+new_order_id+"""', CURRENT_DATE, '"""+request.form['shop_id']+"""',
-                            '"""+session['custID']+"""', '"""+prodid+"""', """+str(totalcost)+""", '"""+str(quantity)+"""')"""
-                g.conn.execute(text(add_to_order))
-                g.conn.commit()
-        cursor.close()
-
-        # increase shop sales_count by quantity
-        increase_shop_sales = "UPDATE shops SET sales_count = sales_count + "+str(quantity)+" WHERE shop_id = '"+request.form['shop_id']+"'"
-        g.conn.execute(text(increase_shop_sales))
-        g.conn.commit()
-        
     # get all shops for customer homepage
     select_query = "SELECT shop_name from shops"
     cursor = g.conn.execute(text(select_query))
@@ -269,8 +181,7 @@ def customer():
         product_ids.append(result[5])
     cursor.close()
 
-    print(session['curruser'])
-    context = dict(shops=shops, curruser=session['curruser'], product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, shop, rating, numratings, pid in zip(product_names, product_imgs, shop_names, ratings, ratings_num, product_ids)})
+    context = dict(shops=shops, product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, shop, rating, numratings, pid in zip(product_names, product_imgs, shop_names, ratings, ratings_num, product_ids)})
 
     return render_template("customer.html", **context)
 
@@ -323,7 +234,7 @@ def searchGet_handler():
 @app.route('/product/<string:product_id>')
 def product(product_id):
     select_query = """SELECT product_name, url, shop_name, shops.average_review, shops.review_count, 
-                        shops.sales_count, shops.state, shops.city, shops.country_code, price, product_id, shops.shop_id
+                        shops.sales_count, shops.state, shops.city, shops.country_code, price
                     FROM products, shops 
                     WHERE product_id = '"""+product_id+"""' AND products.shop_id = shops.shop_id"""
     cursor = g.conn.execute(text(select_query))
@@ -336,8 +247,6 @@ def product(product_id):
     shop_loc = ''
     shop_country = ''
     price = ''
-    prodid = ''
-    shopid = ''
     #product_rating = ''
     #product_numreviews = ''
     for result in cursor:
@@ -355,8 +264,6 @@ def product(product_id):
         shop_country = result[8]
 
         price = result[9]
-        prodid = result[10]
-        shopid = result[11]
         #product_rating = result[10]
         #product_numreviews = result[11]
 
@@ -421,122 +328,26 @@ def product(product_id):
                            shop_name=shop_name, shop_rating=shop_rating, shop_numreviews=shop_numreviews,
                            shop_sales=shop_sales, shop_loc=shop_loc, shop_country=shop_country, price=price,
                            product_substance=product_substance, product_rating=product_rating,
-                           product_numreviews=product_numreviews, **context, curruser = session['curruser'],
-                           prodid=prodid, shopid=shopid)
+                           product_numreviews=product_numreviews, **context)
 
+@app.route('/shoplogin')
+def shoplog():
+    return render_template("shoplogin.html")
 
-### CHECKOUT PAGE
-@app.route('/checkout', methods=['POST', 'GET'])
-def checkout():
-
-    if request.method == 'POST':
-
-        # move from carts to orders2
-        move_to_orders = """INSERT INTO orders2 (order_id, order_date, shop_id, customer_id, product_id, total_price, quantity) 
-                            (SELECT * FROM carts WHERE customer_id = '"""+session['custID']+"""')"""
-        g.conn.execute(text(move_to_orders))
-        g.conn.commit()
-
-        # delete from carts
-        delete_from_cart = "DELETE FROM carts WHERE customer_id = '"+session['custID']+"'"
-        g.conn.execute(text(delete_from_cart))
-        g.conn.commit()
-
-    firstname, lastname = session['curruser'].split()
-
-    select_query_1 = """SELECT product_name, url, quantity, total_price
-                        FROM carts NATURAL JOIN products
-                        WHERE customer_id = '"""+session['custID']+"""'"""
-    cursor = g.conn.execute(text(select_query_1))
-    product_names = []
-    images = []
-    quantities = []
-    totalcosts = []
-    for result in cursor:
-        product_names.append(result[0])
-        images.append(result[1])
-        quantities.append(result[2])
-        totalcosts.append(result[3])
-    cursor.close()
-
-    # get card information
-    select_query_2 = """SELECT card_number, card_security_code, expiration_date, street_address, city,
-                        state, zip_code, country_code
-                        FROM customers
-                        WHERE customer_id = '"""+session['custID']+"""'"""
-    cursor = g.conn.execute(text(select_query_2))
-    cardnum = ""
-    seccode = ""
-    expdate = ""
-    street = ""
-    city = ""
-    state = ""
-    zipcode = ""
-    countrycode = ""
-    for result in cursor:
-        cardnum = result[0]
-        seccode = result[1]
-        expdate = result[2]
-        street = result[3]
-        city = result[4]
-        state = result[5]
-        zipcode = result[6]
-        countrycode = result[7]
-    cursor.close()
-
-    # physical or downloadable products
-    select_query_3 = """SELECT CASE WHEN EXISTS (
-                            SELECT * FROM physical_products
-                            WHERE physical_products.product_id IN (SELECT product_id FROM carts WHERE customer_id = '"""+session['custID']+"""')
-                ) THEN 1 ELSE 0
-                END"""
-    cursor = g.conn.execute(text(select_query_3))
-    physical_present = false
-    for result in cursor:
-        if result[0] == 1: # there are physical products
-            physical_present = true
-    cursor.close()
-
-    select_query_4 = """SELECT CASE WHEN EXISTS (
-                            SELECT * FROM downloadable_products
-                            WHERE downloadable_products.product_id IN (SELECT product_id FROM carts WHERE customer_id = '"""+session['custID']+"""')
-                ) THEN 1 ELSE 0
-                END"""
-    cursor = g.conn.execute(text(select_query_3))
-    downloadable_present = false
-    for result in cursor:
-        if result[0] == 1: # there are physical products
-            downloadable_present = true
-    cursor.close()
-
-    # get total cost of order
-    select_query_4 = "SELECT SUM(total_price) FROM carts WHERE customer_id = '"+session['custID']+"'"
-    cursor = g.conn.execute(text(select_query_4))
-    totalordercost = ''
-    for result in cursor:
-        totalordercost = result[0]
-    cursor.close()
-
-    context = dict(carts_info={name: {'image': image, 'quantity':quantity, 'cost': cost} for name, image, quantity, cost in zip(product_names, images, quantities, totalcosts)})
-
-    return render_template("checkout.html", curruser = session['curruser'], **context, firstname=firstname,
-                           lastname=lastname, cardnum=cardnum, seccode=seccode, expdate=expdate,
-                           physical_present=physical_present, downloadable_present=downloadable_present, street=street,
-                           city=city, state=state, zipcode=zipcode, countrycode=countrycode, totalordercost=totalordercost)
-
+    
+    
 
 ### SHOP PAGE
 @app.route('/shop')
 def shop():
 	# get all products for an individual shop homepage           
-    select_query = "SELECT product_id from products WHERE products.shop_id = shops.shop_id"
+    select_query = "SELECT product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
     cursor = g.conn.execute(text(select_query))
     products = []
     for result in cursor:
         products.append(result[0])
     cursor.close()
-    
-    context = dict(products = products)
+    prod = dict(products = products)
     
 	# get all products info for shop homepage
     select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
@@ -553,8 +364,92 @@ def shop():
         ratings_num.append(result[3])
         product_ids.append(result[4])
     cursor.close()
+    pinfo = dict(products=products, product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+    
+	# given the customer id, see all customer purchases for that shop and their reviews
+    select_query = """SELECT first_name, last_name, url, product_name, shop_name, review FROM orders, products, customers, reviews, shops
+                      WHERE orders.product_id = products.product_id AND orders.customer_id = customers.customer_id 
+                      AND reviews.product_id = products.product_id AND reviews.customer_id = customers.customer_id"""
+    cursor = g.conn.execute(text(select_query))
+    shop_purchases = []
+    for result in cursor:
+        shop_purchases.append(result[0])
+    cursor.close()
+    pshop = dict(shop_purchases = shop_purchases)
+    
+	# given product type of purchased product, list other shops with same product type
+    select_query = """SELECT shop_name FROM shop_product_types, product_types, shops, products, orders
+                      WHERE orders.product_id = products.product_id 
+                      AND shop_product_types.shop_id = shops.shop_id
+                      AND shop_product_types.product_type_id = product_types.product_type_id
+                      AND product_types.product_type_id = products.product_type_id"""
+    cursor = g.conn.execute(text(select_query))
+    same_type_shops = []
+    for result in cursor:
+        same_type_shops.append(result[0])
+    cursor.close()
+    sameshop = dict(same_type_shops = same_type_shops)
+    
+	# calculate the shipping cost of physical products
+    select_query = """SELECT CASE
+                      WHEN EXISTS (
+                           SELECT * FROM physical_products, products, shops, customers, orders
+                           WHERE physical_products.product_id = products.product_id
+                           AND orders.product_id = products.product_id 
+                           AND shops.country_code = customers.country_code
+					  ) THEN 1 ELSE 0
+                      END"""
+    cursor = g.conn.execute(text(select_query))    
+    shipping_cost = 0
+    for result in cursor:
+        if result[0] == 1:
+            shipping_cost = 0
+        else:
+            shipping_cost = 20
+    cursor.close()
+    shipcost = dict(shipping_cost = shipping_cost)
+    
+    return render_template("shop.html", **pinfo, **pshop, **sameshop, **shipcost)
 
-    context = dict(products=products, product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, shop, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+### SEARCH ON SHOP PAGE
+@app.route('/search', methods=['GET'])
+def searchGet_handler2():
+    value = request.args.get('value')
+    if value:
+        value = value.lower()
+
+    # get all products for shop homepage
+    select_query = "SELECT product_id from products WHERE LOWER(product_id) LIKE '%"+value+"%'"
+    cursor = g.conn.execute(text(select_query))
+    products = []
+    for result in cursor:
+        products.append(result[0])
+    cursor.close()
+
+    context = dict(products = products)
+
+    # match query with product name
+    select_query = """SELECT url, product_name, shop_name, avg_review, product_id, product_type
+                        FROM products, shops 
+                        WHERE products.shop_id = shops.shop_id AND 
+                        LOWER(products.product_name) LIKE '%"""+value+"""%' OR
+                        (SELECT LOWER(product_type) FROM product_types WHERE products.product_type_id = product_types.product_type_id) LIKE '%"""+value+"""%')"""
+    cursor = g.conn.execute(text(select_query))
+    product_imgs = []
+    product_names = []
+    ratings = []
+    ratings_num = []
+    product_ids = []
+    for result in cursor:
+        product_imgs.append(result[0])
+        product_names.append(result[1])
+        ratings.append(result[2])
+        ratings_num.append(result[3])
+        product_ids.append(result[4])
+    cursor.close()
+
+    context = dict(products=products, product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+    
     return render_template("shop.html", **context)
 
 #
