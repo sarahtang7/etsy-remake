@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Leave A Review</title>
+
+        <style>
+            #header-row {
+                display: flex;
+                align-items: center;
+                background-color: lightgrey;
+            }
+
+            #acc-button {
+                margin-left: 100px;
+                width: 50px;
+                height: 50px;
+                border-radius: 25px;
+                background-color: pink;
+            }
+
+            #acc-dropdown {
+                position: absolute;
+                z-index: 1;
+                background-color: lightgrey;
+                top: 58px;
+                margin-left: 21px;
+                padding: 10px;
+                text-align: center;
+                display: none;
+                right: -75px;
+                border: 1px solid black;
+            }
+
+            #return-to-customer:hover {
+                cursor: pointer;
+            }
+
+            #cart {
+                font-size: 40px;
+                position: absolute;
+                right: 40px;
+            }
+
+            #cart:hover {
+                cursor: pointer;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!--Header Row-->
+        <div id="header-row" style="position:relative;">
+            <div>
+                <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
+
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+
+            <p id="cart">🛒</p>
+        </div>
+
+        <!--REVIEW PAGE BODY-->
+        <h2 style="margin-left: 20px;">Leave a Review for</h2>
+        
+        <form action="/product/{{currpid}}" method="POST" style="margin-left: 20px;" onsubmit="return addReview()">
+            <h3>{{productname}}</h3>
+            <label for="rating">Rating (out of 5):</label>
+            <input type="number" id="rating" name="rating" step="0.01" minlength="4" maxlength="4" min="0.00" max="5.00" required>
+
+            <br><br><label for="review">Review:</label><br>
+            <textarea id="review" name="review" style="width: 600px; height: 200px;"></textarea><br><br>
+
+            <input type="submit" id="submitreview" value="Submit Review">
+        </form>
+    </body>
+</html>
+
+<script>
+function toggleDropdown() {
+    var dropdown = document.getElementById("acc-dropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
+    }
+}
+
+document.getElementById("cart").addEventListener("click", function() {
+    window.location.href = "/checkout";
+});
+
+function goToPurchased() {
+    window.location.href = "/purchasedproducts";
+}
+
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+
+function addReview() {
+    alert("Review submitted successfully!");
+    return true;
+}
+</script>

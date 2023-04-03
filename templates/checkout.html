@@ -38,14 +38,16 @@
             }
 
             #acc-dropdown {
-                display: none; 
                 position: absolute;
                 z-index: 1;
                 background-color: lightgrey;
-                top: calc(100% + 5px); /* set the top position to be just below the button */
-                margin-left: 20px;
+                top: 58px;
+                margin-left: 21px;
                 padding: 10px;
                 text-align: center;
+                display: none;
+                right: -75px;
+                border: 1px solid black;
             }
 
             #return-to-customer:hover {
@@ -86,6 +88,10 @@
                 bottom: 10px;
                 left: 650px;
             }
+
+            #show-physical-msg, #show-downloadable-msg {
+                display: none;
+            }
         </style>
     </head>
 
@@ -105,7 +111,7 @@
                 <button id="acc-button" onclick="toggleDropdown()"></button><br>
 
                 <div id="acc-dropdown">
-                    <a>Purchased Products</a><br><br>
+                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
                     <a>Your Recommended Products</a>
                 </div>
             </div>
@@ -152,29 +158,39 @@
                     <br>
 
                     {% if physical_present %}
-                        <br><p>You have physical products in your cart. Please enter your <br>address:</p>
-                        <label for="streetaddress">Street Address:</label>
-                        <input type="text" id="streetaddress" name="streetaddress" value="{{ street }}" required>
-                        <br><br>
-                        <label for="city">City:</label>
-                        <input type="text" id="city" name="city" value="{{ city }}" required>
-
-                        <label for="state" style="margin-left: 15px;">State:</label>
-                        <input type="text" id="state" name="state" value="{{ state if state is not none else '' }}">
-                        <br><br>
-                        <label for="zipcode">Zipcode:</label>
-                        <input type="number" minlength="5" maxlength="5" id="zipcode" name="zipcode" value="{{ zipcode }}" required>
-
-                        <label for="countrycode" style="margin-left: 15px;">State:</label>
-                        <input type="text" minlength="3" maxlength="3" id="countrycode" name="countrycode" value="{{ countrycode }}">
+                        <span id="show-physical-msg">
+                            <br><p>You have physical products in your cart. Please enter your <br>address:</p>
+                            <label for="streetaddress">Street Address:</label>
+                            <input type="text" id="streetaddress" name="streetaddress" value="{{ street }}" required>
+                            <br><br>
+                            <label for="city">City:</label>
+                            <input type="text" id="city" name="city" value="{{ city }}" required>
+    
+                            <label for="state" style="margin-left: 15px;">State:</label>
+                            <input type="text" id="state" name="state" value="{{ state if state is not none else '' }}">
+                            <br><br>
+                            <label for="zipcode">Zipcode:</label>
+                            <input type="number" minlength="5" maxlength="5" id="zipcode" name="zipcode" value="{{ zipcode }}" required>
+    
+                            <label for="countrycode" style="margin-left: 15px;">State:</label>
+                            <input type="text" minlength="3" maxlength="3" id="countrycode" name="countrycode" value="{{ countrycode }}">
+                        </span>
                     {% endif %}
 
                     {% if downloadable_present %}
-                        <br><br><p>You have downloadable products in your cart. You can download them in your account dashboard after you checkout.</p>
+                        <span id="show-downloadable-msg">
+                            <br><br><p>You have downloadable products in your cart. You can download them in "Purchased Products" in your account dashboard after you checkout.</p>
+                        </span>
                     {% endif %}
 
                     <br><p id="totcost"><b>Total Cost of Order</b>: {{ totalordercost }}</p>
-                    <input type="submit" id="checkout" value="Checkout">
+
+                    {% if physical_present and downloadable_present %}
+                        <input type="submit" id="checkout" value="Checkout" disabled>
+                    {% else %}
+                        <input type="submit" id="checkout" style="color:pink;" value="Checkout">
+                    {% endif %}
+                        
                 </form>
             </div>
         </div>
@@ -202,5 +218,9 @@ document.getElementById("cart").addEventListener("click", function() {
 function confirmCheckout() {
     alert("Checkout Confirmed!")
     document.getElementById("col1").innerHTML = ""
+}
+
+function goToPurchased() {
+    window.location.href = "/purchasedproducts";
 }
 </script>
