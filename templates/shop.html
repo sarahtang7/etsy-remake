@@ -18,14 +18,16 @@
             }
 
             #acc-dropdown {
-                display: none; 
                 position: absolute;
                 z-index: 1;
                 background-color: lightgrey;
-                top: calc(100% + 5px); /* set the top position to be just below the button */
-                margin-left: 20px;
+                top: 58px;
+                margin-left: 21px;
                 padding: 10px;
                 text-align: center;
+                display: none;
+                right: -75px;
+                border: 1px solid black;
             }
 
             #display-shops, #display-products {
@@ -107,13 +109,13 @@
                 <h4 style="margin: 0px 0px 10px 20px;"></h4>
             </div>
 
-            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+            <form action="/search" method="GET" style="right: 200px; top: 50px; position: absolute;">
                 <input type="text" name="value" style="width: 300px;" placeholder="Search for products or customers">
                 <button type="submit">Search</button>
             </form>
 
 
-            <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
+            <h2 style="margin-left: 20px; margin-top: 50px; top: 50px;">All Products:</h2>
         <div id="display-products">
             {% for name, info in product_info.items() %}
             <div onclick="openProductPage()" class="product" currPID="{{info['pid']}}">

@@ -178,7 +178,7 @@ def customer_login_check():
                         WHERE email_address = '"""+email+"""'"""
             cursor = g.conn.execute(text(query_2))
             for result in cursor:
-                session['curruser'] = result[0] + " " + result[1]
+                session['currshop'] = result[0] + " " + result[1]
                 session['custID'] = result[2]
             return redirect('/customer')
         else:
@@ -708,10 +708,7 @@ def purchased():
 
     return render_template("purchasedproducts.html", curruser = session['curruser'], **context, **context2)
 
-
-@app.route('/shoplogin')
-def shoplog():
-    return render_template("shoplogin.html")
+### BELOW IS RHEA
 
 
 ### SHOP PAGE
@@ -787,6 +784,65 @@ def shop():
     shipcost = dict(shipping_cost = shipping_cost)
     
     return render_template("shop.html", **pinfo, **pshop, **sameshop, **shipcost)
+
+### SHOP LOG IN PAGE
+@app.route('/shoplogin')
+def shoplog():
+    return render_template("shoplogin.html")
+
+### SHOP LOG IN CHECK 
+@app.route('/shoplogincheck', methods=['POST'])
+def shop_login_check():
+    shopname = request.form['shopname']
+    password = request.form['password']
+
+    query_1 = """SELECT CASE 
+                WHEN EXISTS (
+                    SELECT * FROM shops
+                    WHERE shop_name = '"""+shopname+"""' AND 
+                        password = '"""+password+"""'
+                ) THEN 1 ELSE 0
+                END"""
+    cursor = g.conn.execute(text(query_1))
+    for result in cursor:
+        if result[0] == 1:
+            session['shopname'] = shopname # store shop as logged in
+
+            query_2 = """SELECT shop_name, shop_id
+                        FROM shops
+                        WHERE shop_name = '"""+shopname+"""'"""
+            cursor = g.conn.execute(text(query_2))
+            for result in cursor:
+                session['curruser'] = result[0] + " " + result[1]
+                #session['shopID'] = result[2]
+            return redirect('/shop')
+        else:
+            flash('Incorrect login information', 'error')
+            return redirect('/shoplogin')
+           
+    cursor.close()
+    return redirect('/')
+
+### VIEW ALL CUSTOMERS ON SHOP SIDE
+@app.route('/customerview')
+def customerview():
+    select_query = """SELECT customer_id, first_name, last_name, email_address FROM customers, products, orders, shops
+                      WHERE customers.customer_id = orders.order_id
+                      AND orders.product_id = products.product_id
+                      AND orders.shop_id = shops.shop_id"""
+    cursor = g.conn.execute(text(select_query))
+    customer_ids = []
+    cust_first = []
+    cust_last = []
+    email_adds = []
+    for result in cursor:
+        customer_ids.append(result[0])
+        cust_first.append(result[1])
+        cust_last.append(result[2])
+        email_adds.append(result[3])
+    cursor.close()
+    context = dict( )
+    return render_template(customerview.html, **context)
 
 
 #
