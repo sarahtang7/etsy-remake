@@ -183,7 +183,7 @@ def customer_login_check():
                         WHERE email_address = '"""+email+"""'"""
             cursor = g.conn.execute(text(query_2))
             for result in cursor:
-                session['currshop'] = result[0] + " " + result[1]
+                session['curruser'] = result[0] + " " + result[1]
                 session['custID'] = result[2]
             return redirect('/customer')
         else:
