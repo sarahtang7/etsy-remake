@@ -810,6 +810,8 @@ def purchased():
 
     return render_template("purchasedproducts.html", curruser = session['curruser'], **context, **context2)
 
+### BELOW IS RHEA
+
 ### SHOP PAGE
 @app.route('/shop')
 def shop():
