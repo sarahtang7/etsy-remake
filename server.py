@@ -502,9 +502,59 @@ def review(product_id):
     productname = ""
     for result in cursor:
         productname = result[0]
+    cursor.close()
 
     return render_template("review.html", curruser = session['curruser'], currpid = product_id, 
                            productname=productname)
+
+
+### RECOMMENDATIONS PAGE
+@app.route('/recommended')
+def recs():
+
+    # for each product a customer has purchased
+    select_query = "SELECT product_id FROM orders2 WHERE customer_id = '"+session['custID']+"'"
+    cursor = g.conn.execute(text(select_query))
+    purchased = []
+    for result in cursor:
+        purchased.append(result[0])
+    cursor.close()
+
+    sim_prodname = []
+    sim_prodimg = []
+    sim_prodprice = []
+    for curr_prodid in purchased:
+        select_query_1 = """SELECT product_type_id, price
+                            FROM products
+                            WHERE product_id = '"""+curr_prodid+"""'"""
+        cursor = g.conn.execute(text(select_query_1))
+        curr_prodtypeid = ""
+        curr_prodprice = -1.0
+        for result in cursor:
+            curr_prodtypeid = result[0]
+            curr_prodprice = result[1]
+        cursor.close()
+
+        min_price_range = str(float(curr_prodprice.replace('$', '')) - 10.00)
+        max_price_range = str(float(curr_prodprice.replace('$', '')) + 10.00)
+
+        # get product ids for similar products
+        select_query_2 = """SELECT product_name, url, price
+                            FROM products
+                            WHERE product_type_id = '"""+curr_prodtypeid+"""' 
+                                    AND price >= '$"""+min_price_range+"""'
+                                    AND price <= '$"""+max_price_range+"""'
+                                    AND avg_review >= """+str(4.0)+""""""
+        cursor = g.conn.execute(text(select_query_2))
+        for result in cursor:
+            sim_prodname.append(result[0])
+            sim_prodimg.append(result[1])
+            sim_prodprice.append(result[2])
+        cursor.close()
+    
+    context = dict(similar_products={name: {'image': image, 'price':price} for name, image, price in zip(sim_prodname, sim_prodimg, sim_prodprice)})
+
+    return render_template("recommended.html", curruser = session['curruser'], **context)
 
 
 ### CHECKOUT PAGE
@@ -658,10 +708,86 @@ def purchased():
 
     return render_template("purchasedproducts.html", curruser = session['curruser'], **context, **context2)
 
+
+@app.route('/shoplogin')
+def shoplog():
+    return render_template("shoplogin.html")
+
+
 ### SHOP PAGE
 @app.route('/shop')
 def shop():
-    return render_template("shop.html")
+	# get all products for an individual shop homepage           
+    select_query = "SELECT product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
+    cursor = g.conn.execute(text(select_query))
+    products = []
+    for result in cursor:
+        products.append(result[0])
+    cursor.close()
+    prod = dict(products = products)
+    
+	# get all products info for shop homepage
+    select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
+    cursor = g.conn.execute(text(select_query))
+    product_imgs = []
+    product_names = []
+    ratings = []
+    ratings_num = []
+    product_ids = []
+    for result in cursor:
+        product_imgs.append(result[0])
+        product_names.append(result[1])
+        ratings.append(result[2])
+        ratings_num.append(result[3])
+        product_ids.append(result[4])
+    cursor.close()
+    pinfo = dict(products=products, product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+    
+	# given the customer id, see all customer purchases for that shop and their reviews
+    select_query = """SELECT first_name, last_name, url, product_name, shop_name, review FROM orders, products, customers, reviews, shops
+                      WHERE orders.product_id = products.product_id AND orders.customer_id = customers.customer_id 
+                      AND reviews.product_id = products.product_id AND reviews.customer_id = customers.customer_id"""
+    cursor = g.conn.execute(text(select_query))
+    shop_purchases = []
+    for result in cursor:
+        shop_purchases.append(result[0])
+    cursor.close()
+    pshop = dict(shop_purchases = shop_purchases)
+    
+	# given product type of purchased product, list other shops with same product type
+    select_query = """SELECT shop_name FROM shop_product_types, product_types, shops, products, orders
+                      WHERE orders.product_id = products.product_id 
+                      AND shop_product_types.shop_id = shops.shop_id
+                      AND shop_product_types.product_type_id = product_types.product_type_id
+                      AND product_types.product_type_id = products.product_type_id"""
+    cursor = g.conn.execute(text(select_query))
+    same_type_shops = []
+    for result in cursor:
+        same_type_shops.append(result[0])
+    cursor.close()
+    sameshop = dict(same_type_shops = same_type_shops)
+    
+	# calculate the shipping cost of physical products
+    select_query = """SELECT CASE
+                      WHEN EXISTS (
+                           SELECT * FROM physical_products, products, shops, customers, orders
+                           WHERE physical_products.product_id = products.product_id
+                           AND orders.product_id = products.product_id 
+                           AND shops.country_code = customers.country_code
+					  ) THEN 1 ELSE 0
+                      END"""
+    cursor = g.conn.execute(text(select_query))    
+    shipping_cost = 0
+    for result in cursor:
+        if result[0] == 1:
+            shipping_cost = 0
+        else:
+            shipping_cost = 20
+    cursor.close()
+    shipcost = dict(shipping_cost = shipping_cost)
+    
+    return render_template("shop.html", **pinfo, **pshop, **sameshop, **shipcost)
+
 
 #
 # This is an example of a different path.  You can see it at:

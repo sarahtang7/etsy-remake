@@ -114,7 +114,7 @@
 
                 <div id="acc-dropdown">
                     <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
-                    <a>Your Recommended Products</a>
+                    <a onclick="goToRecs()" style="cursor: pointer;"><u>Your Recommended Products</u></a>
                 </div>
             </div>
 
@@ -214,6 +214,10 @@ function addToCart() {
 
 function goToPurchased() {
     window.location.href = "/purchasedproducts";
+}
+
+function goToRecs() {
+    window.location.href = "/recommended";
 }
 
 function openReviewPage() {

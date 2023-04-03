@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Leave A Review</title>
+        <title>Recommendations</title>
 
         <style>
             #header-row {
@@ -44,6 +44,16 @@
             #cart:hover {
                 cursor: pointer;
             }
+
+            #recs-area {
+                border: 1px solid black;
+                margin: 0px 20px 0px 20px;
+                padding: 20px;
+            }
+
+            .sim-product {
+                border: 1px solid green;
+            }
         </style>
     </head>
 
@@ -72,19 +82,17 @@
             <p id="cart">🛒</p>
         </div>
 
-        <!--REVIEW PAGE BODY-->
-        <h2 style="margin-left: 20px;">Leave a Review for</h2>
-        
-        <form action="/product/{{currpid}}" method="POST" style="margin-left: 20px;" onsubmit="return addReview()">
-            <h3>{{productname}}</h3>
-            <label for="rating">Rating (out of 5):</label>
-            <input type="number" id="rating" name="rating" step="0.01" minlength="4" maxlength="4" min="0.00" max="5.00" required>
-
-            <br><br><label for="review">Review:</label><br>
-            <textarea id="review" name="review" style="width: 600px; height: 200px;"></textarea><br><br>
-
-            <input type="submit" id="submitreview" value="Submit Review">
-        </form>
+        <!--RECS PAGE BODY-->
+        <h2 style="margin-left:20px;">Product Recommendations</h2>
+        <div id="recs-area">
+            {% for name, info in similar_products.items() %}
+            <div onclick="openProductPage()" class="sim-product" currPID="{{info['pid']}}">
+                <p>{{name}}</p>
+                <p>{{info['image']}}</p>
+                <p>{{info['price']}}</p>
+            </div>
+            {% endfor %}
+        </div>
     </body>
 </html>
 
@@ -113,9 +121,4 @@ function goToRecs() {
 document.getElementById("return-to-customer").addEventListener("click", function() {
     window.location.href = "/customer";
 });
-
-function addReview() {
-    alert("Review submitted successfully!");
-    return true;
-}
 </script>
