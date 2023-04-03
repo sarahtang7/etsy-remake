@@ -79,14 +79,20 @@
 
             .quantity {
                 position: absolute;
-                right: 200px;
+                right: 152px;
                 bottom: 10px;
             }
 
             .prod-cost {
                 position: absolute;
                 bottom: 10px;
-                left: 650px;
+                left: 191px;
+            }
+
+            .del-from-cart {
+                bottom: 10px;
+                position: absolute;
+                right: 20px;
             }
 
             #show-physical-msg, #show-downloadable-msg {
@@ -112,7 +118,7 @@
 
                 <div id="acc-dropdown">
                     <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
-                    <a>Your Recommended Products</a>
+                    <a onclick="goToRecs()" style="cursor: pointer;"><u>Your Recommended Products</u></a>
                 </div>
             </div>
 
@@ -132,6 +138,13 @@
                     <img id="img" src="{{info['image']}}">
                     <span class="quantity">Quantity: {{ info['quantity'] }}</span>
                     <span class="prod-cost">{{ info['cost'] }}</span>
+
+                    <form action="/checkout" method="post">
+                        <input type="hidden" name="purpose" value="removefromcart">
+                        <input type="hidden" name="quantity" value="{{ info['quantity'] }}">
+                        <input type="hidden" name="name" value="{{ name }}">
+                        <input type="submit" value="Delete from cart" class="del-from-cart"></button>
+                    </form>
                 </div>
                 {% endfor %}
             </div>
@@ -140,6 +153,7 @@
                 <h2 style="margin-left: 10px;">Payment Information:</h2>
 
                 <form action="/checkout" method="post" style="margin-left: 20px;" onsubmit="confirmCheckout()">
+                    <input type="hidden" name="purpose" value="checkout">
 
                     <label for="firstname">First Name:</label>
                     <input type="text" id="firstname" name="firstname" value="{{ firstname }}" required>
@@ -158,7 +172,7 @@
                     <br>
 
                     {% if physical_present %}
-                        <span id="show-physical-msg">
+                        <span id="show-physical-msg" style="display: block;">
                             <br><p>You have physical products in your cart. Please enter your <br>address:</p>
                             <label for="streetaddress">Street Address:</label>
                             <input type="text" id="streetaddress" name="streetaddress" value="{{ street }}" required>
@@ -178,17 +192,17 @@
                     {% endif %}
 
                     {% if downloadable_present %}
-                        <span id="show-downloadable-msg">
+                        <span id="show-downloadable-msg" style="display: block;">
                             <br><br><p>You have downloadable products in your cart. You can download them in "Purchased Products" in your account dashboard after you checkout.</p>
                         </span>
                     {% endif %}
 
                     <br><p id="totcost"><b>Total Cost of Order</b>: {{ totalordercost }}</p>
 
-                    {% if physical_present and downloadable_present %}
+                    {% if not physical_present and not downloadable_present %}
                         <input type="submit" id="checkout" value="Checkout" disabled>
                     {% else %}
-                        <input type="submit" id="checkout" style="color:pink;" value="Checkout">
+                        <input type="submit" id="checkout" value="Checkout">
                     {% endif %}
                         
                 </form>
@@ -223,4 +237,9 @@ function confirmCheckout() {
 function goToPurchased() {
     window.location.href = "/purchasedproducts";
 }
+
+function goToRecs() {
+    window.location.href = "/recommended";
+}
+
 </script>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Customer Sign Up</title>
+
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #signup-header {
+                margin-top: 100px;
+            }
+
+            #email-taken {
+                margin-top: 20px;
+                color: red;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1 id="signup-header">Customer Sign Up</h1>
+
+        <form action="/customersignupcheck" method="post">
+            <div class="form-group">
+                <label for="firstname">First name:</label>
+                <input type="text" id="firstname" name="firstname" required><br><br>
+                <label for="lastname">Last name:</label>
+                <input type="text" id="lastname" name="lastname" required><br><br>
+
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" style="width: 250px;" required><br><br><br>
+
+                <label for="cardnumber">Card number:</label>
+                <input type="text" minlength="16" maxlength="16" id="cardnumber" name="cardnumber" required>
+                <label for="securitycode" style="margin-left: 20px;">Security code:</label>
+                <input type="text" minlength="3" maxlength="3" id="securitycode" name="securitycode" style="width: 40px;" required><br><br>
+                <label for="expirationdate">Expiration date:</label>
+                <input type="date" id="expirationdate" name="expirationdate" required><br><br><br>
+
+                <label for="streetaddress">Street address:</label>
+                <input type="text" id="streetaddress" name="streetaddress" style="width: 400px;" required><br><br>
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city">
+                <label for="state" style="margin-left: 20px;">State:</label>
+                <input type="text" id="state" name="state">
+                <label for="zipcode" style="margin-left: 20px;">Zipcode:</label>
+                <input type="text" minlength="5" maxlength="5" id="zipcode" name="zipcode" required>
+                <label for="countrycode" style="margin-left: 20px;">Country code:</label>
+                <input type="text" minlength="2" maxlength="2" id="countrycode" name="countrycode" required><br><br><br>
+
+                <label for="password">Set password:</label>
+                <input type="password" id="password" name="password" required><br><br><br>
+
+            </div>
+            <div style="text-align: center;">
+                <input type="submit" value="Sign Up">
+            </div>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div id="email-taken" class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+    </body>
+</html>
+
+<script>
+    var today = new Date();
+    var tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    var minDate = tomorrow.toISOString().slice(0, 10);
+    document.getElementById("expirationdate").setAttribute("min", minDate);
+</script>

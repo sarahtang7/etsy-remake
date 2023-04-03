@@ -48,6 +48,10 @@
                     <input type="submit" value="Log In">
                 </div>
             </form>
+            
+            <div style="text-align: center; margin-top:10px;">
+                <button onclick="signUpPage()">Sign Up</button>
+            </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -61,3 +65,9 @@
         </div>
     </body>
 </html>
+
+<script>
+function signUpPage() {
+    window.location.href = "/customersignup";
+}
+</script>
