@@ -46,14 +46,22 @@
             }
 
             #recs-area {
-                border: 1px solid black;
                 margin: 0px 20px 0px 20px;
-                padding: 20px;
+                display: flex;
+                flex-wrap: wrap;
             }
 
-            .sim-product {
-                border: 1px solid green;
+            .sim-product, .why-rec {
+                border: 1px solid black;
+                padding: 10px;
+                width: 294px;
+                margin: 10px;
             }
+
+            .sim-product:hover {
+                background-color: lightgrey;
+            }
+
         </style>
     </head>
 
@@ -83,13 +91,18 @@
         </div>
 
         <!--RECS PAGE BODY-->
-        <h2 style="margin-left:20px;">Product Recommendations</h2>
+        <h2 style="margin-left:20px; margin-top: 30px;">Product Recommendations</h2>
         <div id="recs-area">
             {% for name, info in similar_products.items() %}
-            <div onclick="openProductPage()" class="sim-product" currPID="{{info['pid']}}">
-                <p>{{name}}</p>
-                <p>{{info['image']}}</p>
-                <p>{{info['price']}}</p>
+            <div>
+                <div onclick="openProductPage()" class="sim-product" currPID="{{info['ids']}}">
+                    <p><b>{{name}}</b></p>
+                    <img style="height: 150px;" src="{{info['image']}}">
+                    <p>{{info['price']}}</p>
+                </div>
+                <div class="why-rec">
+                    based on your purchase of <em>{{info['inspo']}}</em>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -121,4 +134,9 @@ function goToRecs() {
 document.getElementById("return-to-customer").addEventListener("click", function() {
     window.location.href = "/customer";
 });
+
+function openProductPage() {
+    var curr_pid = event.currentTarget.getAttribute("currPID");
+    window.location.href = "/product/" + curr_pid;
+}
 </script>

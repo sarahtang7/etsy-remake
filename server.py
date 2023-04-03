@@ -155,6 +155,11 @@ def index():
 def customer_login():
     return render_template("customerlogin.html")
 
+### CUSTOMER SIGN UP PAGE
+@app.route('/customersignup')
+def customer_signup():
+    return render_template("customersignup.html")
+
 ### CUSTOMER LOG IN CHECK 
 @app.route('/customerlogincheck', methods=['POST'])
 def customer_login_check():
@@ -192,6 +197,48 @@ def customer_login_check():
     #print(password)
     return redirect('/')
     #return render_template("customerlogin.html")
+
+### CUSTOMER SIGN UP CHECK 
+@app.route('/customersignupcheck', methods=['POST'])
+def customer_signup_check():
+
+    # check if email is already in use
+    select_query = """SELECT CASE WHEN EXISTS (
+                        SELECT * FROM customers
+                        WHERE email_address = '"""+request.form['email']+"""'
+                        ) THEN 1 ELSE 0 END"""
+    cursor = g.conn.execute(text(select_query))
+    for result in cursor:
+        if result[0] == 1:
+            flash('Email already in use', 'error')
+            return redirect('/customersignup')
+    cursor.close()
+            
+    # create new customer entry
+    query_1 = "SELECT MAX(customer_id) FROM customers"
+    cursor = g.conn.execute(text(query_1))
+    new_cust_id = ""
+    for result in cursor:
+        new_cust_id = str(int(result[0])+1)
+    cursor.close()
+
+    new_customer = """INSERT INTO customers (customer_id, first_name, last_name, email_address, card_number,
+                        card_security_code, expiration_date, street_address, city, state, zip_code, 
+                        country_code, password)
+                    VALUES ('"""+new_cust_id+"""', '"""+request.form['firstname']+"""', '"""+request.form['lastname']+"""',
+                    '"""+request.form['email']+"""', '"""+request.form['cardnumber']+"""', '"""+request.form['securitycode']+"""',
+                    '"""+request.form['expirationdate']+"""', '"""+request.form['streetaddress']+"""', '"""+request.form['city']+"""',
+                    '"""+request.form['state']+"""', '"""+request.form['zipcode']+"""', '"""+request.form['countrycode']+"""',
+                    '"""+request.form['password']+"""')"""
+    g.conn.execute(text(new_customer))
+    g.conn.commit()
+
+    session['email'] = request.form['email']
+    session['curruser'] = request.form['firstname'] + " " + request.form['lastname']
+    session['custID'] = new_cust_id
+
+    return redirect('/customer')
+
 
 ### CUSTOMER PAGE
 @app.route('/customer', methods=['POST', 'GET'])
@@ -285,7 +332,6 @@ def customer():
         product_ids.append(result[5])
     cursor.close()
 
-    print(session['curruser'])
     context = dict(shops=shops, curruser=session['curruser'], product_info={name: {'img': img, 'shop': shop, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, shop, rating, numratings, pid in zip(product_names, product_imgs, shop_names, ratings, ratings_num, product_ids)})
 
     return render_template("customer.html", **context)
@@ -482,15 +528,33 @@ def product(product_id):
         if result[0] == 1:
             reviewed_before = True
     cursor.close()
-    print(purchased_before)
-    print(reviewed_before)
+
+    # is the product downloadable and already in cart?
+    disable_addtocart = False
+    select_query_9 = "SELECT CASE WHEN EXISTS (SELECT * FROM downloadable_products WHERE product_id = '"+product_id+"') THEN 1 ELSE 0 END"""
+    cursor = g.conn.execute(text(select_query_9))
+    is_downloadable = False
+    for result in cursor:
+        if result[0] == 1:
+            is_downloadable = True
+    cursor.close()
+
+    if (is_downloadable):
+        select_query_8 = """SELECT CASE WHEN EXISTS (
+                                SELECT * FROM carts WHERE product_id = '"""+product_id+"""' AND customer_id='"""+session['custID']+"""') THEN 1 ELSE 0 END"""
+        cursor = g.conn.execute(text(select_query_8))
+        for result in cursor:
+            if result[0] == 1:
+                disable_addtocart = True
+        cursor.close()
+
     return render_template('product.html', product_name=product_name, product_image=product_image, 
                            shop_name=shop_name, shop_rating=shop_rating, shop_numreviews=shop_numreviews,
                            shop_sales=shop_sales, shop_loc=shop_loc, shop_country=shop_country, price=price,
                            product_substance=product_substance, product_rating=product_rating,
                            product_numreviews=product_numreviews, **context, curruser = session['curruser'],
                            prodid=prodid, shopid=shopid, purchased_before=purchased_before,
-                           reviewed_before=reviewed_before)
+                           reviewed_before=reviewed_before, disable_addtocart=disable_addtocart)
 
 
 ### REVIEW PRODUCT PAGE
@@ -520,9 +584,13 @@ def recs():
         purchased.append(result[0])
     cursor.close()
 
+    print("num purchased: ", len(purchased))
+
     sim_prodname = []
     sim_prodimg = []
     sim_prodprice = []
+    sim_prodids = []
+    inspo_prods = []
     for curr_prodid in purchased:
         select_query_1 = """SELECT product_type_id, price
                             FROM products
@@ -539,20 +607,29 @@ def recs():
         max_price_range = str(float(curr_prodprice.replace('$', '')) + 10.00)
 
         # get product ids for similar products
-        select_query_2 = """SELECT product_name, url, price
+        select_query_2 = """SELECT product_name, url, price, product_id
                             FROM products
                             WHERE product_type_id = '"""+curr_prodtypeid+"""' 
                                     AND price >= '$"""+min_price_range+"""'
                                     AND price <= '$"""+max_price_range+"""'
-                                    AND avg_review >= """+str(4.0)+""""""
+                                    AND avg_review >= """+str(4.0)+"""
+                                    AND product_id != '"""+curr_prodid+"""'"""
         cursor = g.conn.execute(text(select_query_2))
         for result in cursor:
             sim_prodname.append(result[0])
             sim_prodimg.append(result[1])
             sim_prodprice.append(result[2])
+            sim_prodids.append(result[3])
+
+            select_query_3 = "SELECT product_name FROM products WHERE product_id = '"+curr_prodid+"'"
+            cursor2 = g.conn.execute(text(select_query_3))
+            for result in cursor2:
+                inspo_prods.append(result[0])
+            cursor2.close()
+
         cursor.close()
-    
-    context = dict(similar_products={name: {'image': image, 'price':price} for name, image, price in zip(sim_prodname, sim_prodimg, sim_prodprice)})
+        
+    context = dict(similar_products={name: {'image': image, 'price':price, 'inspo':inspo, 'ids':ids} for name, image, price, inspo, ids in zip(sim_prodname, sim_prodimg, sim_prodprice, inspo_prods, sim_prodids)})
 
     return render_template("recommended.html", curruser = session['curruser'], **context)
 
@@ -563,16 +640,40 @@ def checkout():
 
     if request.method == 'POST':
 
-        # move from carts to orders2
-        move_to_orders = """INSERT INTO orders2 (order_id, order_date, shop_id, customer_id, product_id, total_price, quantity) 
-                            (SELECT * FROM carts WHERE customer_id = '"""+session['custID']+"""')"""
-        g.conn.execute(text(move_to_orders))
-        g.conn.commit()
+        if request.form['purpose'] == 'checkout':
 
-        # delete from carts
-        delete_from_cart = "DELETE FROM carts WHERE customer_id = '"+session['custID']+"'"
-        g.conn.execute(text(delete_from_cart))
-        g.conn.commit()
+            # move from carts to orders2
+            move_to_orders = """INSERT INTO orders2 (order_id, order_date, shop_id, customer_id, product_id, total_price, quantity) 
+                                (SELECT * FROM carts WHERE customer_id = '"""+session['custID']+"""')"""
+            g.conn.execute(text(move_to_orders))
+            g.conn.commit()
+
+            # delete from carts
+            delete_from_cart = "DELETE FROM carts WHERE customer_id = '"+session['custID']+"'"
+            g.conn.execute(text(delete_from_cart))
+            g.conn.commit()
+
+        if request.form['purpose'] == 'removefromcart':
+            curr_quantity = str(int(request.form['quantity']))
+            get_prodid = "SELECT product_id FROM products WHERE product_name = '"+request.form['name']+"'"
+            cursor = g.conn.execute(text(get_prodid))
+            prodid = ''
+            for result in cursor:
+                prodid = result[0]
+            cursor.close()
+
+            if curr_quantity == '1':
+                # delete
+                delete_from_cart = "DELETE FROM carts WHERE customer_id = '"+session['custID']+"' AND product_id = '"+prodid+"'"
+                g.conn.execute(text(delete_from_cart))
+                g.conn.commit()
+            else:
+                # update table
+                update_cart = """UPDATE carts
+                                    SET quantity = quantity - 1
+                                    WHERE customer_id = '"""+session['custID']+"""' AND product_id = '"""+prodid+"""'"""
+                g.conn.execute(text(update_cart))
+                g.conn.commit()
 
     firstname, lastname = session['curruser'].split()
 
@@ -623,10 +724,10 @@ def checkout():
                 ) THEN 1 ELSE 0
                 END"""
     cursor = g.conn.execute(text(select_query_3))
-    physical_present = false
+    physical_present = False
     for result in cursor:
         if result[0] == 1: # there are physical products
-            physical_present = true
+            physical_present = True
     cursor.close()
 
     select_query_4 = """SELECT CASE WHEN EXISTS (
@@ -634,12 +735,13 @@ def checkout():
                             WHERE downloadable_products.product_id IN (SELECT product_id FROM carts WHERE customer_id = '"""+session['custID']+"""')
                 ) THEN 1 ELSE 0
                 END"""
-    cursor = g.conn.execute(text(select_query_3))
-    downloadable_present = false
+    cursor = g.conn.execute(text(select_query_4))
+    downloadable_present = False
     for result in cursor:
         if result[0] == 1: # there are physical products
-            downloadable_present = true
+            downloadable_present = True
     cursor.close()
+
 
     # get total cost of order
     select_query_4 = "SELECT SUM(total_price) FROM carts WHERE customer_id = '"+session['custID']+"'"

@@ -139,7 +139,12 @@
                     <h4 style="margin-bottom: 5px; margin-top: -5px;">{{ product_substance }}</h4>
 
                     <form action="/customer" method="post" onsubmit="return addToCart()">
-                        <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart">
+                        {% if disable_addtocart %}
+                            <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart" disabled>
+                            <p style="color: red;">This product is already in your cart</p>
+                        {% else %}
+                            <input type="submit" class="product-buttons" id="add-to-cart" value="Add to Cart">
+                        {% endif %}
 
                         {% if product_substance == "Downloadable Product" %}
                             <p>(one time purchase)</p>
