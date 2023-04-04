@@ -186,7 +186,7 @@
                             <label for="zipcode">Zipcode:</label>
                             <input type="number" minlength="5" maxlength="5" id="zipcode" name="zipcode" value="{{ zipcode }}" required>
     
-                            <label for="countrycode" style="margin-left: 15px;">State:</label>
+                            <label for="countrycode" style="margin-left: 15px;">Country:</label>
                             <input type="text" minlength="3" maxlength="3" id="countrycode" name="countrycode" value="{{ countrycode }}">
                         </span>
                     {% endif %}
@@ -196,8 +196,9 @@
                             <br><br><p>You have downloadable products in your cart. You can download them in "Purchased Products" in your account dashboard after you checkout.</p>
                         </span>
                     {% endif %}
-
-                    <br><p id="totcost"><b>Total Cost of Order</b>: {{ totalordercost }}</p>
+                    <br><p id="initcost"><b>Cost of Order Before Shipping</b>: {{ initialcost }}</p>
+                    <br><p id="shipcost"><b>Shipping Cost</b>: ${{ shipcost }}.00</p>
+                    <br><p id="totcost"><b>Total Cost of Order</b>: ${{ totalordercost }}</p>
 
                     {% if not physical_present and not downloadable_present %}
                         <input type="submit" id="checkout" value="Checkout" disabled>

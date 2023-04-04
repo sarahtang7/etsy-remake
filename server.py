@@ -741,22 +741,54 @@ def checkout():
         if result[0] == 1: # there are physical products
             downloadable_present = True
     cursor.close()
+    
+   
 
-
-    # get total cost of order
+    # get initial cost of order before shipping
     select_query_4 = "SELECT SUM(total_price) FROM carts WHERE customer_id = '"+session['custID']+"'"
     cursor = g.conn.execute(text(select_query_4))
-    totalordercost = ''
+    initialcost = ''
     for result in cursor:
-        totalordercost = result[0]
+        initialcost = result[0] 
     cursor.close()
+
+    # get country code customer
+    select_query_6 = "SELECT country_code FROM customers WHERE customer_id = '"+session['custID']+"'"
+    cursor = g.conn.execute(text(select_query_6))
+    customer_cc = ''
+    for result in cursor:
+        customer_cc = result[0] 
+    cursor.close()
+
+ # calculate the shipping cost of physical products
+    select_query_5 = "SELECT country_code FROM carts NATURAL JOIN shops WHERE carts.customer_id='"+session['custID']+"'"
+    cursor = g.conn.execute(text(select_query_5))    
+    shop_ccs = []
+    for result in cursor:
+        shop_ccs.append(result[0])
+    cursor.close()
+
+    print("customer cc:", customer_cc)
+    shipcost = 0
+    for cc in shop_ccs:
+        print("curr shop cc: ", cc)
+        if customer_cc == cc:
+            shipcost = 0
+        else:
+            shipcost = 20
+            break
+
+    totalordercost = str(float(initialcost.replace('$','')) + float(shipcost))
+    initialcost = str(initialcost)
+    shipcost = str(shipcost)
+    totalordercost = float(totalordercost)
 
     context = dict(carts_info={name: {'image': image, 'quantity':quantity, 'cost': cost} for name, image, quantity, cost in zip(product_names, images, quantities, totalcosts)})
 
     return render_template("checkout.html", curruser = session['curruser'], **context, firstname=firstname,
                            lastname=lastname, cardnum=cardnum, seccode=seccode, expdate=expdate,
                            physical_present=physical_present, downloadable_present=downloadable_present, street=street,
-                           city=city, state=state, zipcode=zipcode, countrycode=countrycode, totalordercost=totalordercost)
+                           city=city, state=state, zipcode=zipcode, countrycode=countrycode, initialcost=initialcost,shipcost=shipcost, totalordercost=round(totalordercost,2))
 
 
 ### PURCHASED PRODUCTS PAGE
@@ -902,25 +934,8 @@ def shop():
     cursor.close()
     sameshop = dict(same_type_shops = same_type_shops)
     
-	# calculate the shipping cost of physical products
-    select_query = """SELECT CASE
-                      WHEN EXISTS (
-                           SELECT * FROM physical_products, products, shops, customers, orders
-                           WHERE physical_products.product_id = products.product_id
-                           AND orders.product_id = products.product_id 
-                           AND shops.country_code = customers.country_code
-					  ) THEN 1 ELSE 0
-                      END"""
-    cursor = g.conn.execute(text(select_query))    
-    shipping_cost = 0
-    for result in cursor:
-        if result[0] == 1:
-            shipping_cost = 0
-        else:
-            shipping_cost = 20
-    cursor.close()
-    shipcost = dict(shipping_cost = shipping_cost)
-    return render_template("shop.html", **pinfo, **pshop, **sameshop, **shipcost)
+	
+    return render_template("shop.html", **pinfo, **pshop, **sameshop)
 
 ### SHOP LOG IN PAGE
 @app.route('/shoplogin')
