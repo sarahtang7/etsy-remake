@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>View shops by product type</title>
+    </head>
+
+    <body>
+        <button onclick="goShopsHomepage()">Shops Homepage</button>
+
+        <h2 style="margin-left: 20px;">View Shops by Product Type:</h2>
+
+        <span style="margin-left: 20px;">Select a product type:</span>
+        <form style="margin-left: 20px;" method="post" action="/shopsbyproducttype">
+            <select name="producttype"> 
+                <option value="blank"></option>
+                {% for name, info in prodtype_info.items() %}
+                <option value="{{info['id']}}">{{name}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="View Shops">
+        </form>
+
+        {% for shop in shopsmatch %}
+            <div style="margin-left: 20px; margin-top: 20px;">{{shop}}</div>
+        {% endfor %}
+
+    </body>
+</html>
+
+<script>
+function goShopsHomepage() {
+    window.location.href = "/shop";
+}
+</script>

@@ -98,6 +98,12 @@
             #cart:hover {
                 cursor: pointer;
             }
+
+            #shops-by-prodtype {
+                margin-top: 20px;
+                width: 200px;
+                height: 70px;
+            }
         </style>
 
     </head>
@@ -134,6 +140,8 @@
         </div>
 
         </div>
+
+        <button id="shops-by-prodtype" onclick="shopsProductType()">View shops by product type</button>
     </body>
 </html>
 
@@ -155,4 +163,8 @@ function openProductPage() {
     var curr_pid = event.currentTarget.getAttribute("currPID");
     window.location.href = "/product/" + curr_pid;
 };
+
+function shopsProductType() {
+    window.location.href = "/shopsbyproducttype";
+}
 </script>
