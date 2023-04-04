@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Customer Activity</title>
+
+        <style>
+            .prod-review {
+                background-color: #f6f6f6;
+                margin: 10px 48px 10px 48px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h2 style="margin-left: 20px;">Activity for: {{fullname}}</h2>
+
+        <h3 style="margin-left: 40px; margin-bottom: 10px;">Purchases made:</h3>
+        {% for product in product_names %}
+        <div style="margin:10px 50px 10px 50px; background-color: #f6f6f6;">
+            <ul>{{product}}</ul>
+        </div>
+        {% endfor %}
+
+        <h3 style="margin-left: 40px; margin-bottom: 10px;">Reviews left:</h3>
+        {% for name, info in prodreview_info.items() %}
+            <div class="prod-review">
+                <p>Review left for <b>{{name}}</b>: {{info['rating']}}</p>
+                <p>"{{info['review']}}"</p>
+            </div>
+        {% endfor %}
+    </body>
+</html>
