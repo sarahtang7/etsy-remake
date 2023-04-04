@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>All My Customers</title>
+
+        <style>
+
+        </style>
+    </head>
+    <body>
+        <div id="header-row" style="position:relative;">
+            <div>
+                <h1 id="my-customer" style="margin: 10px 0px 5px 20px;">Customers</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+            </div>
+
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or users">
+                <button type="submit">Search</button>
+            </form>
+
+            <div id="user-acc-info" style="right: 100px; position: absolute;">
+                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+
+                <div id="acc-dropdown">
+                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
+                    <a>Your Recommended Products</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+
+<script>
+    function toggleDropdown() {
+        var dropdown = document.getElementById("acc-dropdown");
+        if (dropdown.style.display === "block") {
+            dropdown.style.display = "none";
+        } else {
+            dropdown.style.display = "block";
+        }
+    }
+    
+    document.getElementById("return-to-customer").addEventListener("click", function() {
+        window.location.href = "/customer";
+    });
+    
+    </script>

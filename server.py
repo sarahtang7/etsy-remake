@@ -813,19 +813,24 @@ def purchased():
 ### BELOW IS RHEA
 
 ### SHOP PAGE
-@app.route('/shop')
+@app.route('/shop', methods=['POST', 'GET'])
 def shop():
-	# get all products for an individual shop homepage           
-    select_query = "SELECT product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
-    cursor = g.conn.execute(text(select_query))
-    products = []
-    for result in cursor:
-        products.append(result[0])
-    cursor.close()
-    prod = dict(products = products)
+    #if request.method == 'POST':
+     #   shopna = request.form['']
+	# get all products for an individual shop homepage        
+   # print(session['shopname'])   
+   # select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id AND shops.shop_name = '"""+session['shopname']+"""'"""
+    
+    #cursor = g.conn.execute(text(select_query))
+    #products = []
+    #for result in cursor:
+    #    products.append(result[0])
+   # cursor.close()
+    #pinfo = dict(product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
     
 	# get all products info for shop homepage
-    select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id"
+    select_query = "SELECT url, product_name, shop_name, avg_review, products.review_count, product_id FROM products, shops WHERE products.shop_id = shops.shop_id AND shops.shop_name = '"""+session['shopname']+"""'"""
+    
     cursor = g.conn.execute(text(select_query))
     product_imgs = []
     product_names = []
@@ -839,7 +844,7 @@ def shop():
         ratings_num.append(result[3])
         product_ids.append(result[4])
     cursor.close()
-    pinfo = dict(products=products, product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
+    pinfo = dict(product_info={name: {'img': img, 'rating': rating, 'numratings': numratings, 'pid': pid} for name, img, rating, numratings, pid in zip(product_names, product_imgs, ratings, ratings_num, product_ids)})
     
 	# given the customer id, see all customer purchases for that shop and their reviews
     select_query = """SELECT first_name, last_name, url, product_name, shop_name, review FROM orders, products, customers, reviews, shops
@@ -883,7 +888,6 @@ def shop():
             shipping_cost = 20
     cursor.close()
     shipcost = dict(shipping_cost = shipping_cost)
-    
     return render_template("shop.html", **pinfo, **pshop, **sameshop, **shipcost)
 
 ### SHOP LOG IN PAGE
@@ -914,8 +918,8 @@ def shop_login_check():
                         WHERE shop_name = '"""+shopname+"""'"""
             cursor = g.conn.execute(text(query_2))
             for result in cursor:
-                session['curruser'] = result[0] + " " + result[1]
-                #session['shopID'] = result[2]
+                session['currshop'] = result[0] + " " + result[1]
+                #session['shopID'] = shopname
             return redirect('/shop')
         else:
             flash('Incorrect login information', 'error')
@@ -925,12 +929,14 @@ def shop_login_check():
     return redirect('/')
 
 ### VIEW ALL CUSTOMERS ON SHOP SIDE
-@app.route('/customerview')
+@app.route('/customerview', methods=['POST','GET'])
 def customerview():
-    select_query = """SELECT customer_id, first_name, last_name, email_address FROM customers, products, orders, shops
+    if request.method == 'POST':
+        select_query = """SELECT customer_id, first_name, last_name, email_address FROM customers, products, orders, shops
                       WHERE customers.customer_id = orders.order_id
                       AND orders.product_id = products.product_id
-                      AND orders.shop_id = shops.shop_id"""
+                      AND orders.shop_id = shops.shop_id
+                      AND shops.shop_name = '"""+session['shopname']+"""'"""
     cursor = g.conn.execute(text(select_query))
     customer_ids = []
     cust_first = []
