@@ -810,6 +810,38 @@ def purchased():
 
     return render_template("purchasedproducts.html", curruser = session['curruser'], **context, **context2)
 
+
+### BELOW IS SARAH SHOP CODE
+
+@app.route('/shopsbyproducttype', methods=['POST', 'GET'])
+def shops_by_prodtype():
+
+    shopsmatch = []
+    if request.method == 'POST':
+        print(request.form['producttype'])
+        # get all shops that sell selected product type
+        select_query_2 = """SELECT shop_name 
+                            FROM shops NATURAL JOIN shop_product_types 
+                            WHERE product_type_id = '"""+request.form['producttype']+"""'"""
+        cursor = g.conn.execute(text(select_query_2))
+        for result in cursor:
+            shopsmatch.append(result[0])
+        cursor.close()
+
+    # get all available product types
+    select_query_1 = "SELECT product_type, product_type_id FROM product_types"
+    cursor = g.conn.execute(text(select_query_1))
+    producttypes = []
+    producttypeids = []
+    for result in cursor:
+        producttypes.append(result[0])
+        producttypeids.append(result[1])
+    cursor.close()
+
+    context = dict(prodtype_info={name: {'id':id} for name, id in zip(producttypes, producttypeids)})
+
+    return render_template('shopsbyproducttype.html', **context, shopsmatch=shopsmatch)
+
 ### BELOW IS RHEA
 
 ### SHOP PAGE
