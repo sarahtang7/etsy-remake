@@ -99,7 +99,7 @@
                 cursor: pointer;
             }
 
-            #shops-by-prodtype {
+            #shops-by-prodtype, #add-product, #go-to-customers {
                 margin-top: 20px;
                 width: 200px;
                 height: 70px;
@@ -122,11 +122,11 @@
             </form>
 
         </div>
-        <h2 onclick="openCustomerView()" id="go-to-customers" style="margin: 10px 0px 5px 20px;">See Your Customers</h2>
+        <!--<h2 onclick="openCustomerView()" id="go-to-customers" style="margin: 10px 0px 5px 20px;">See Your Customers</h2>-->
         <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
         <div id="display-products">
             {% for name, info in product_info.items() %}
-            <div onclick="openProductPage()" class="product" currPID="{{info['pid']}}">
+            <div class="product" currPID="{{info['pid']}}">
                 <div class="product-image-box">
                     <img class="product-images" src="{{info['img']}}">
                 </div>
@@ -144,6 +144,8 @@
         </div>
 
         <button id="shops-by-prodtype" onclick="shopsProductType()">View shops by product type</button>
+        <button id="add-product" onclick="addProduct()">Add Product</button>
+        <button id="go-to-customers" onclick="openCustomerView()">See Your Customers</button>
     </body>
 </html>
 
@@ -177,5 +179,9 @@ function shopsProductType() {
 function openCustomerView() {
     window.location.href = "/customerview";
 };
+
+function addProduct() {
+    window.location.href = "/addproduct";
+}
 
 </script>
