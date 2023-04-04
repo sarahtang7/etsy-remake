@@ -116,7 +116,7 @@
             </form>
 
         </div>
-
+        <h2 onclick="openCustomerView()" id="go-to-customers" style="margin: 10px 0px 5px 20px;">See Your Customers</h2>
         <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
         <div id="display-products">
             {% for name, info in product_info.items() %}
@@ -160,4 +160,8 @@ function openProductPage() {
     var curr_pid = event.currentTarget.getAttribute("currPID");
     window.location.href = "/product/" + curr_pid;
 };
+function openCustomerView() {
+    window.location.href = "/customerview";
+};
+
 </script>
