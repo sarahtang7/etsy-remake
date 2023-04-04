@@ -512,7 +512,7 @@ def product(product_id):
     g.conn.commit()
 
     # has customer previously purchased this product -> can leave review?
-    select_query_6 = "SELECT CASE WHEN EXISTS (SELECT * FROM orders2 WHERE product_id = '"+product_id+"' AND customer_id='"+session['custID']+"') THEN 1 ELSE 0 END"
+    select_query_6 = "SELECT CASE WHEN EXISTS (SELECT * FROM orders WHERE product_id = '"+product_id+"' AND customer_id='"+session['custID']+"') THEN 1 ELSE 0 END"
     cursor = g.conn.execute(text(select_query_6))
     purchased_before = False
     for result in cursor:
@@ -577,7 +577,7 @@ def review(product_id):
 def recs():
 
     # for each product a customer has purchased
-    select_query = "SELECT product_id FROM orders2 WHERE customer_id = '"+session['custID']+"'"
+    select_query = "SELECT product_id FROM orders WHERE customer_id = '"+session['custID']+"'"
     cursor = g.conn.execute(text(select_query))
     purchased = []
     for result in cursor:
@@ -642,8 +642,8 @@ def checkout():
 
         if request.form['purpose'] == 'checkout':
 
-            # move from carts to orders2
-            move_to_orders = """INSERT INTO orders2 (order_id, order_date, shop_id, customer_id, product_id, total_price, quantity) 
+            # move from carts to orders
+            move_to_orders = """INSERT INTO orders (order_id, order_date, shop_id, customer_id, product_id, total_price, quantity) 
                                 (SELECT * FROM carts WHERE customer_id = '"""+session['custID']+"""')"""
             g.conn.execute(text(move_to_orders))
             g.conn.commit()
@@ -794,10 +794,10 @@ def checkout():
 ### PURCHASED PRODUCTS PAGE
 @app.route('/purchasedproducts')
 def purchased():
-    #prodids_downloadable = "SELECT product_id FROM orders2 NATURAL JOIN downloadable_products WHERE customer_id = '"+session['custID']+"'"
+    #prodids_downloadable = "SELECT product_id FROM orders NATURAL JOIN downloadable_products WHERE customer_id = '"+session['custID']+"'"
     select_query_1 = """SELECT product_name, file_size, file_type, url, order_date, quantity
-                        FROM products NATURAL JOIN downloadable_products NATURAL JOIN orders2
-                        WHERE product_id IN (SELECT product_id FROM orders2 NATURAL JOIN downloadable_products WHERE customer_id = '"""+session['custID']+"""')"""
+                        FROM products NATURAL JOIN downloadable_products NATURAL JOIN orders
+                        WHERE product_id IN (SELECT product_id FROM orders NATURAL JOIN downloadable_products WHERE customer_id = '"""+session['custID']+"""')"""
     cursor = g.conn.execute(text(select_query_1))
     down_prodnames = []
     filesizes = []
@@ -818,8 +818,8 @@ def purchased():
 
     # get physical products
     select_query_2 = """SELECT product_name, url, order_date, dimensions, weight, materials_used, quantity
-                        FROM products NATURAL JOIN physical_products NATURAL JOIN orders2
-                        WHERE product_id IN (SELECT product_id FROM orders2 NATURAL JOIN physical_products WHERE customer_id = '"""+session['custID']+"""')"""
+                        FROM products NATURAL JOIN physical_products NATURAL JOIN orders
+                        WHERE product_id IN (SELECT product_id FROM orders NATURAL JOIN physical_products WHERE customer_id = '"""+session['custID']+"""')"""
     cursor = g.conn.execute(text(select_query_2))
     physical_prodnames = []
     images2 = []
