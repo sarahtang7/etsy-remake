@@ -920,6 +920,73 @@ def customer_activity(cust_id):
 
     return render_template('customeractivity.html', fullname=fullname, product_names=product_names, **context)
 
+
+### ADD PRODUCT PAGE
+@app.route('/addproduct', methods=['POST', 'GET'])
+def add_product():
+    return render_template('addproduct.html')
+
+### ADDING PRODUCT PAGE
+@app.route('/addingproduct', methods=['POST', 'GET'])
+def adding_product():
+    # create new product_id
+    query_1 = "SELECT MAX(product_id) FROM products"
+    cursor = g.conn.execute(text(query_1))
+    new_prod_id = ""
+    for result in cursor:
+        new_prod_id = str(int(result[0])+1)
+    cursor.close()
+
+    # get shop id
+    select_query = "SELECT shop_id FROM shops WHERE shop_name = '"+session['shopname']+"'"
+    cursor = g.conn.execute(text(select_query))
+    shopid = ""
+    for result in cursor:
+        shopid = result[0]
+    cursor.close()
+
+    # get or create product type id
+    product_type_id = ""
+    producttype = request.form['producttype'].lower().replace(" ", "")
+    select_query_1 = """SELECT CASE WHEN EXISTS (
+                           SELECT * FROM product_types
+                           WHERE REPLACE(LOWER(product_type), ' ', '') = '"""+producttype+"""'
+					  ) THEN 1 ELSE 0 END"""
+    cursor = g.conn.execute(text(select_query_1))
+    for result in cursor:
+        if result[0] == 1:
+            select_query_2 = "SELECT product_type_id FROM product_types WHERE REPLACE(LOWER(product_type), ' ', '') = '"+producttype+"'"
+            cursor = g.conn.execute(text(select_query_2))
+            for result in cursor:
+                product_type_id = result[0]
+            cursor.close()
+
+        if result[0] == 0:
+            # create new product type id
+            query_2 = "SELECT MAX(product_type_id) FROM product_types"
+            cursor = g.conn.execute(text(query_2))
+            new_prodtype_id = ""
+            for result in cursor:
+                new_prodtype_id = str(int(result[0])+1)
+            cursor.close()
+            product_type_id = new_prodtype_id
+            
+            # add to product types table
+            new_type = "INSERT INTO product_types (product_type_id, product_type) VALUES ('"+product_type_id+"', '"+request.form['producttype']+"')"
+            g.conn.execute(text(new_type))
+            g.conn.commit()
+
+    cursor.close()
+
+    # add product
+    add_product = """INSERT INTO products (product_id, shop_id, product_type_id, price, product_name, url) 
+                    VALUES ('"""+new_prod_id+"""', '"""+shopid+"""', '"""+product_type_id+"""', 
+                    '"""+request.form['price']+"""', '"""+request.form['productname']+"""', '"""+request.form['imageurl']+"""')"""
+    g.conn.execute(text(add_product))
+    g.conn.commit()
+    
+    return redirect('/shop')
+
 ### BELOW IS RHEA
 
 ### SHOP PAGE
