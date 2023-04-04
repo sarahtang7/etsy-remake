@@ -778,6 +778,8 @@ def checkout():
             shipcost = 20
             break
 
+    if initialcost == None:
+        initialcost = '0'
     totalordercost = str(float(initialcost.replace('$','')) + float(shipcost))
     initialcost = str(initialcost)
     shipcost = str(shipcost)
