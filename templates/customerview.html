@@ -5,7 +5,9 @@
         <title>All My Customers</title>
 
         <style>
-
+            .cust_info:hover {
+                cursor: pointer;
+            }
         </style>
     </head>
     <body>
@@ -16,7 +18,7 @@
             </div>
 
             {% for name, info in customer_info.items() %}
-            <div class="cust_info">{{name}} {{}} </div>
+            <div class="cust_info" onclick="customersOrder()" currcustid="{{info['id']}}">{{name}}</div>
 
             {% endfor %}
     
@@ -30,17 +32,22 @@
 </html>
 
 <script>
-    function toggleDropdown() {
-        var dropdown = document.getElementById("acc-dropdown");
-        if (dropdown.style.display === "block") {
-            dropdown.style.display = "none";
-        } else {
-            dropdown.style.display = "block";
-        }
+function toggleDropdown() {
+    var dropdown = document.getElementById("acc-dropdown");
+    if (dropdown.style.display === "block") {
+        dropdown.style.display = "none";
+    } else {
+        dropdown.style.display = "block";
     }
-    
-    document.getElementById("return-to-customer").addEventListener("click", function() {
-        window.location.href = "/customer";
-    });
+}
+
+document.getElementById("return-to-customer").addEventListener("click", function() {
+    window.location.href = "/customer";
+});
+
+function customersOrder() {
+    var currcustid = event.currentTarget.getAttribute("currcustid");
+    window.location.href = "/customeractivity/" + currcustid;
+}
     
     </script>

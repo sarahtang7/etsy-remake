@@ -874,6 +874,52 @@ def shops_by_prodtype():
 
     return render_template('shopsbyproducttype.html', **context, shopsmatch=shopsmatch)
 
+
+@app.route('/customeractivity/<string:cust_id>', methods=['POST', 'GET'])
+def customer_activity(cust_id):
+
+    # get customer name
+    select_query_1 = "SELECT first_name, last_name FROM customers WHERE customer_id = '"+cust_id+"'"
+    cursor = g.conn.execute(text(select_query_1))
+    fullname = ""
+    for result in cursor:
+        fullname = result[0] + " " + result[1]
+    cursor.close()
+
+    # get shop id
+    select_query = "SELECT shop_id FROM shops WHERE shop_name = '"+session['shopname']+"'"
+    cursor = g.conn.execute(text(select_query))
+    shopid = ""
+    for result in cursor:
+        shopid = result[0]
+    cursor.close()
+
+    # get product info from purchases between customer and shop
+    select_query_2 = """SELECT product_name
+                        FROM orders NATURAL JOIN products
+                        WHERE customer_id = '"""+cust_id+"""' AND orders.shop_id = '"""+shopid+"""'"""
+    cursor = g.conn.execute(text(select_query_2))
+    product_names = []
+    for result in cursor:
+        product_names.append(result[0])
+    cursor.close()
+
+    # get reviews left
+    select_query_3 = """SELECT review, product_name, rating FROM reviews NATURAL JOIN products
+                        WHERE customer_id = '"""+cust_id+"""' AND shop_id = '"""+shopid+"""'"""
+    cursor = g.conn.execute(text(select_query_3))
+    reviews = []
+    prodnames = []
+    ratings = []
+    for result in cursor:
+        reviews.append(result[0])
+        prodnames.append(result[1])
+        ratings.append(result[2])
+    cursor.close()
+    context = dict(prodreview_info={name: {'review': review, 'rating':rating} for name, review, rating in zip(prodnames, reviews, ratings)})
+
+    return render_template('customeractivity.html', fullname=fullname, product_names=product_names, **context)
+
 ### BELOW IS RHEA
 
 ### SHOP PAGE
