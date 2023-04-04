@@ -3,7 +3,7 @@
     <head>
         <title>Shop Homepage</title>
         <style>
-            #header-row {
+               #header-row {
                 display: flex;
                 align-items: center;
                 background-color: lightgrey;
@@ -103,19 +103,21 @@
     </head>
 
     <body>
+
         <div id="header-row" style="position:relative;">
             <div>
                 <h1 id="return-to-customer" style="margin: 10px 0px 5px 20px;">Shop</h1>
-                <h4 style="margin: 0px 0px 10px 20px;"></h4>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{session['shopname']}}</h4>
             </div>
 
-            <form action="/search" method="GET" style="right: 200px; top: 50px; position: absolute;">
-                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or customers">
+            <form action="/search" method="GET" style="right: 200px; position: absolute;">
+                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or shops">
                 <button type="submit">Search</button>
             </form>
 
+        </div>
 
-            <h2 style="margin-left: 20px; margin-top: 50px; top: 50px;">All Products:</h2>
+        <h2 style="margin-left: 20px; margin-top: 50px;">All Products:</h2>
         <div id="display-products">
             {% for name, info in product_info.items() %}
             <div onclick="openProductPage()" class="product" currPID="{{info['pid']}}">
@@ -133,7 +135,6 @@
             {% endfor %}
         </div>
 
-        </div>
     </body>
 </html>
 
@@ -145,6 +146,10 @@ function toggleDropdown() {
   } else {
     dropdown.style.display = "block";
   }
+}
+
+function goToPurchased() {
+    window.location.href = "/purchasedproducts";
 }
 
 document.getElementById("return-to-customer").addEventListener("click", function() {
