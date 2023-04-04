@@ -11,22 +11,19 @@
     <body>
         <div id="header-row" style="position:relative;">
             <div>
-                <h1 id="my-customer" style="margin: 10px 0px 5px 20px;">Customers</h1>
-                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{curruser}}</h4>
+                <h1 id="my-customer" style="margin: 10px 0px 5px 20px;">All {{session['shopname']}}'s Customers</h1>
+                <h4 style="margin: 0px 0px 10px 20px;">Welcome, {{session['shopname']}}</h4>
             </div>
 
-            <form action="/search" method="GET" style="right: 200px; position: absolute;">
-                <input type="text" name="value" style="width: 300px;" placeholder="Search for products or users">
-                <button type="submit">Search</button>
-            </form>
+            {% for name, info in customer_info.items() %}
+            <div class="cust_info">{{name}}</div>
 
-            <div id="user-acc-info" style="right: 100px; position: absolute;">
-                <button id="acc-button" onclick="toggleDropdown()"></button><br>
+            {% endfor %}
+    
 
-                <div id="acc-dropdown">
-                    <a onclick="goToPurchased()" style="cursor: pointer;"><u>Purchased Products</u></a><br><br>
-                    <a>Your Recommended Products</a>
-                </div>
+
+
+        
             </div>
         </div>
     </body>

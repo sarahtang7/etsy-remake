@@ -963,25 +963,26 @@ def shop_login_check():
 ### VIEW ALL CUSTOMERS ON SHOP SIDE
 @app.route('/customerview', methods=['POST','GET'])
 def customerview():
-    if request.method == 'POST':
-        select_query = """SELECT customer_id, first_name, last_name, email_address FROM customers, products, orders, shops
-                      WHERE customers.customer_id = orders.order_id
-                      AND orders.product_id = products.product_id
-                      AND orders.shop_id = shops.shop_id
-                      AND shops.shop_name = '"""+session['shopname']+"""'"""
+
+    select_query = """SELECT customers.customer_id, first_name, last_name, email_address FROM customers, products, orders, shops
+                    WHERE customers.customer_id = orders.customer_id
+                    AND orders.product_id = products.product_id
+                    AND orders.shop_id = shops.shop_id
+                    AND shops.shop_name = '"""+session['shopname']+"""'"""
     cursor = g.conn.execute(text(select_query))
+    cust_name = []
     customer_ids = []
-    cust_first = []
-    cust_last = []
+    #cust_first = []
+    #cust_last = []
     email_adds = []
     for result in cursor:
         customer_ids.append(result[0])
-        cust_first.append(result[1])
-        cust_last.append(result[2])
+        cust_name.append(result[1] + " " + result[2])
         email_adds.append(result[3])
     cursor.close()
-    context = dict( )
-    return render_template(customerview.html, **context)
+    context = dict(customer_info={name: {'id': id, 'email': email} for name, id, email in zip(cust_name, customer_ids, email_adds)})
+    return render_template("customerview.html", **context)
+    
 
 
 #
